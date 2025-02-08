@@ -1,49 +1,41 @@
 import React, { useState } from 'react';
+import { useForm, SubmitHandler } from 'react-hook-form';
 
-interface Profile {
+interface ProfileFormInputs {
     name: string;
     email: string;
 }
 
 const ProfileForm: React.FC = () => {
-    const [profile, setProfile] = useState<Profile>({ name: "John Doe", email: "john@example.com" });
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setProfile({ ...profile, [e.target.name]: e.target.value });
-    };
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        // TODO: Submit profile update to backend
-        console.log("Profile updated:", profile);
+    const { register, handleSubmit, formState: { errors } } = useForm<ProfileFormInputs>();
+    const onSubmit: SubmitHandler<ProfileFormInputs> = data => {
+        // TODO: Submit data to backend
+        console.log("Profile Data:", data);
     };
 
     return (
-        <form onSubmit={handleSubmit} className="max-w-md mx-auto space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="max-w-md mx-auto space-y-4">
             <div>
                 <label htmlFor="name" className="block text-sm font-medium text-gray-700">Name</label>
                 <input
-                    type="text"
+                    {...register("name", { required: "Name is required" })}
                     id="name"
-                    name="name"
-                    value={profile.name}
-                    onChange={handleChange}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500"
                 />
+                {errors.name && <p className="text-red-500 text-sm">{errors.name.message}</p>}
             </div>
             <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
                 <input
-                    type="email"
+                    {...register("email", { required: "Email is required", pattern: { value: /^\S+@\S+$/i, message: "Invalid email" } })}
                     id="email"
-                    name="email"
-                    value={profile.email}
-                    onChange={handleChange}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                    type="email"
+                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500"
                 />
+                {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
             </div>
             <button type="submit" className="w-full py-2 px-4 bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none">
-                Save Changes
+                Save Profile
             </button>
         </form>
     );
