@@ -13,7 +13,7 @@ interface AppointmentCardProps {
 
 const AppointmentCard: React.FC<AppointmentCardProps> = ({ appointment }) => {
     return (
-        <div className="border p-4 rounded shadow hover:shadow-lg transition">
+        <div className="border p-4 rounded shadow hover:shadow-lg transition transform hover:scale-105">
             <h3 className="text-xl font-semibold">{appointment.provider}</h3>
             <p className="text-gray-700">Customer: {appointment.customer}</p>
             <p className="text-gray-500">Time: {appointment.time}</p>
