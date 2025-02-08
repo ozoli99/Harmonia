@@ -1,11 +1,41 @@
-import React from 'react';
-import ProfileForm from '../components/ProfileForm';
+import React, { useEffect, useState } from 'react';
+import axios from '../utils/api';
+import { ExtendedUser } from '../types/User';
+import ProfileCard from '../components/ProfileCard';
 
 const Profile: React.FC = () => {
+    const [user, setUser] = useState<ExtendedUser | null>(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        axios.get("/profile").then((response) => {
+            setUser(response.data);
+            setLoading(false);
+        }).catch((err) => {
+            console.error("Error fetching profile:", err);
+            setLoading(false);
+        });
+    }, []);
+
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center h-screen">
+                <span className="text-xl text-gray-600">Loading...</span>
+            </div>
+        );
+    }
+
+    if (!user) {
+        return (
+            <div className="flex justify-center items-center h-screen">
+                <span className="text-xl text-gray-600">User not found</span>
+            </div>
+        );
+    }
+
     return (
-        <div className="p-8">
-            <h2 className="text-3xl font-bold mb-6">Your Profile</h2>
-            <ProfileForm />
+        <div className="container mx-auto p-8">
+            <ProfileCard user={user} />
         </div>
     );
 };
