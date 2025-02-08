@@ -75,6 +75,84 @@ func main() {
 		context.JSON(http.StatusOK, appointment)
 	})
 
+	router.PUT("/appointments/:id", func(context *gin.Context) {
+		idStr := context.Param("id")
+		id, err := strconv.ParseUint(idStr, 10, 32)
+		if err != nil {
+			context.JSON(http.StatusBadRequest, gin.H{"error": "Invalid appointment ID"})
+			return
+		}
+
+		var request struct {
+			NewStartTime string `json:"newStartTime"`
+			NewEndTime   string `json:"newEndTime"`
+		}
+		if err := context.ShouldBindJSON(&request); err != nil {
+			context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		newStartTime, err := time.Parse(time.RFC3339, request.NewStartTime)
+		if err != nil {
+			context.JSON(http.StatusBadRequest, gin.H{"error": "Invalid start time format"})
+			return
+		}
+		newEndTime, err := time.Parse(time.RFC3339, request.NewEndTime)
+		if err != nil {
+			context.JSON(http.StatusBadRequest, gin.H{"error": "Invalid end time format"})
+			return
+		}
+
+		appointment, err := appointmentService.RescheduleAppointment(uint(id), newStartTime, newEndTime)
+		if err != nil {
+			context.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		context.JSON(http.StatusOK, appointment)
+	})
+
+	router.DELETE("/appointments/:id", func(context *gin.Context) {
+		idStr := context.Param("id")
+		id, err := strconv.ParseUint(idStr, 10, 32)
+		if err != nil {
+			context.JSON(http.StatusBadRequest, gin.H{"error": "Invalid appointment ID"})
+			return
+		}
+
+		err = appointmentService.CancelAppointment(uint(id))
+		if err != nil {
+			context.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		context.JSON(http.StatusOK, gin.H{"message": "Appointment cancelled"})
+	})
+
+	router.GET("/profile", func(context *gin.Context) {
+		// TODO: Retrieve user info from the session or database.
+		profile := gin.H{
+			"id":             1,
+			"name":           "John Doe",
+			"email":          "john@example.com",
+			"profilePicture": "https://via.placeholder.com/150",
+			"role":           "masseur",
+			"bio":            "Certified massage therapist with 10 years of experience.",
+			"experience":     10,
+			"specialties":    []string{"Swedish Massage", "Deep Tissue", "Sports Massage"},
+			"location":       "Los Angeles, CA",
+		}
+		context.JSON(http.StatusOK, profile)
+	})
+
+	router.PUT("/profile", func(context *gin.Context) {
+		var profileUpdate map[string]interface{}
+		if err := context.ShouldBindJSON(&profileUpdate); err != nil {
+			context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		// TOFO: Update the user profile in the database.
+		context.JSON(http.StatusOK, gin.H{"message": "Profile updated", "profile": profileUpdate})
+	})
+
 	log.Printf("Starting Harmonia on port %s", configuration.Port)
 	if err := http.ListenAndServe(":" + configuration.Port, router); err != nil {
 		log.Fatalf("Server error: %v", err)
