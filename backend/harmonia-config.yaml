@@ -1,0 +1,27 @@
+# Harmonia Configuration File
+
+# Server settings
+Port: "8080"
+
+# Database connection string (PostgreSQL in this example)
+DatabaseURL: "postgres://username:password@localhost:5432/harmonia?sslmode=disable"
+
+# Authentication settings (using Auth0 by default)
+AuthDomain: "dev-63lnnyvm5sp0cz2o.eu.auth0.com"
+AuthAudience: "https://your-auth0-audience"
+# If you decide to use Clerk instead, set AUTH_PROVIDER to "clerk" and provide ClerkPublicKeyURL.
+AUTH_PROVIDER: "auth0"
+ClerkPublicKeyURL: "https://api.clerk.dev/public-key" # Only used if AUTH_PROVIDER is set to "clerk"
+
+# Payment settings
+StripeSecretKey: "sk_test_yourStripeSecretKey"
+PaymentAdapter: "stripe" # Options: "stripe", "paypal", etc.
+
+# Calendar settings (using Google Calendar as default)
+GoogleCredFile: "./path/to/credentials.json" # Path to your Google service account credentials file.
+GoogleCalendarID: "your-google-calendar-id"
+
+# Notification settings (using Twilio for SMS)
+TwilioSID: "your-twilio-sid"
+TwilioAuthToken: "your-twilio-auth-token"
+TwilioFromPhone: "+1234567890"
