@@ -1,31 +1,38 @@
-import React from "react";
-import { useAuth0 } from "@auth0/auth0-react";
-import LoginButton from "./components/LoginButton";
-import LogoutButton from "./components/LogoutButton";
+import React, { Suspense, lazy } from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Navbar from "./components/Navbar";
+import Container from "./components/Container";
+import { ToastProvider } from "./contexts/ToastContext";
+import ToastContainer from "./components/ToastContainer";
+
+const Home = lazy(() => import("./pages/Home"));
+const Login = lazy(() => import("./pages/Login"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Appointments = lazy(() => import("./pages/Appointments"));
+const Profile = lazy(() => import("./pages/Profile"));
 
 const App: React.FC = () => {
-    const { isLoading, isAuthenticated, error, user } = useAuth0();
-
-    if (isLoading) {
-        return <div className="p-8 text-center">Loading...</div>;
-    }
-    if (error) {
-        return <div className="p-8 text-center text-red-600">Error: {error.message}</div>;
-    }
-    if (isAuthenticated) {
-        return (
-            <div className="p-8 text-center">
-                <h1 className="text-2xl font-bold mb-4">Hello, {user?.name}!</h1>
-                <LogoutButton />
+    return (
+        <ToastProvider>
+            <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+                <Navbar />
+          
+                <Container className="py-8">
+                    <Suspense fallback={<div className="text-center mt-8">Loading...</div>}>
+                        <Routes>
+                            <Route path="/" element={<Home />} />
+                            <Route path="/login" element={<Login />} />
+                            <Route path="/dashboard" element={<Dashboard />} />
+                            <Route path="/appointments" element={<Appointments />} />
+                            <Route path="/profile" element={<Profile />} />
+                        </Routes>
+                    </Suspense>
+                </Container>
+          
+                <ToastContainer />
             </div>
-        );
-    } else {
-        return (
-            <div className="p-8 text-center">
-                <LoginButton />
-            </div>
-        );
-    }
+        </ToastProvider>
+    );
 };
 
 export default App;
