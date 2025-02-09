@@ -13,10 +13,12 @@ interface AppointmentCardProps {
 
 const AppointmentCard: React.FC<AppointmentCardProps> = ({ appointment }) => {
     return (
-        <div className="border p-4 rounded shadow hover:shadow-lg transition transform hover:scale-105">
-            <h3 className="text-xl font-semibold">{appointment.provider}</h3>
-            <p className="text-gray-700">Customer: {appointment.customer}</p>
-            <p className="text-gray-500">Time: {appointment.time}</p>
+        <div className="border border-gray-200 dark:border-gray-700 p-6 rounded-2xl shadow hover:shadow-xl transition-transform transform hover:scale-105">
+            <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100">
+                {appointment.provider}
+            </h3>
+            <p className="text-gray-600 dark:text-gray-300 mt-2">Customer: {appointment.customer}</p>
+            <p className="text-gray-500 dark:text-gray-400 mt-1">Time: {appointment.time}</p>
         </div>
     );
 };

@@ -6,12 +6,16 @@ Port: "8080"
 # Database connection string (PostgreSQL in this example)
 DatabaseURL: "postgres://harmonia_user:secretpassword@localhost:5432/harmonia?sslmode=disable"
 
+AuthProvider: "clerk"
+
 # Authentication settings (using Auth0 by default)
 AuthDomain: "dev-63lnnyvm5sp0cz2o.eu.auth0.com"
 AuthAudience: "https://dev-63lnnyvm5sp0cz2o.eu.auth0.com/api/v2/"
 AuthClientID: "E0CVtZtCGhPL0D8nUCLQmXnHZLBtwkSL"
 AuthClientSecret: "Qz5XuFcwFiM6pJwsrzgKSS-Uj1kXtsnU2jXbeoO2x3okK6xZENFH4pHdUmTfItXr"
 AuthCallbackURL: "https://reimagined-goggles-wgg96677x97c7q6-8080.app.github.dev/callback"
+
+# Authentication settings
 ClerkPublicKeyURL: "https://api.clerk.dev/public-key"  # Only used if AUTH_PROVIDER is "clerk"
 
 # Payment settings

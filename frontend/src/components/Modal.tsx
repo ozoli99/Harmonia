@@ -1,4 +1,4 @@
-import React, { ReactNode, useEffect } from 'react';
+import React, { ReactNode, useEffect, useState } from 'react';
 
 interface ModalProps {
     isOpen: boolean;
@@ -7,29 +7,31 @@ interface ModalProps {
 }
 
 const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children }) => {
-    // Lock background scrolling when modal is open.
+    const [show, setShow] = useState(isOpen);
+
     useEffect(() => {
         if (isOpen) {
+            setShow(true);
             document.body.style.overflow = 'hidden';
         } else {
+            // Delay removal for transition effect
+            const timer = setTimeout(() => setShow(false), 300);
             document.body.style.overflow = '';
+            return () => clearTimeout(timer);
         }
-        return () => {
-            document.body.style.overflow = '';
-        };
     }, [isOpen]);
-  
-    if (!isOpen) return null;
-  
+
+    if (!show) return null;
+
     return (
         <div
-            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+            className={`fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}
             onClick={onClose}
             role="dialog"
             aria-modal="true"
         >
             <div
-                className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md mx-auto shadow-lg transform transition-all duration-300"
+                className={`bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md mx-auto shadow-xl transform transition-all duration-300 ${isOpen ? 'scale-100' : 'scale-95'}`}
                 onClick={(e) => e.stopPropagation()}
             >
                 <button

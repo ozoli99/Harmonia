@@ -12,9 +12,6 @@ const Home: React.FC = () => {
                 Your centralized platform for massage service management.
             </p>
             <LoginButton />
-            <Link to="/login" className="bg-harmoniaBlue hover:bg-harmoniaBlue.dark text-white py-2 px-6 rounded">
-                Get Started
-            </Link>
         </div>
     );
 };

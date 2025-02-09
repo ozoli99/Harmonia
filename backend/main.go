@@ -9,6 +9,9 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/clerk/clerk-sdk-go/v2"
+	clerkhttp "github.com/clerk/clerk-sdk-go/v2/http"
+	"github.com/clerk/clerk-sdk-go/v2/user"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
@@ -16,11 +19,9 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/ozoli99/Praesto/appointment"
-	"github.com/ozoli99/Praesto/auth"
 	"github.com/ozoli99/Praesto/calendars"
 	"github.com/ozoli99/Praesto/config"
 	"github.com/ozoli99/Praesto/notifications"
-	"github.com/ozoli99/Praesto/user"
 )
 
 func generateSecureState() (string, error) {
@@ -28,7 +29,13 @@ func generateSecureState() (string, error) {
 	if _, err := rand.Read(b); err != nil {
 		return "", err
 	}
-	return base64.URLEncoding.EncodeToString(b), nil
+	return base64.StdEncoding.EncodeToString(b), nil
+}
+
+func GinWrap(h http.Handler) gin.HandlerFunc {
+    return func(c *gin.Context) {
+        h.ServeHTTP(c.Writer, c.Request)
+    }
 }
 
 func main() {
@@ -39,7 +46,7 @@ func main() {
 		log.Fatalf("Database connection error: %v", err)
 	}
 
-	if err := database.AutoMigrate(&user.User{}, &appointment.Appointment{}); err != nil {
+	if err := database.AutoMigrate(&appointment.Appointment{}); err != nil {
 		log.Fatalf("Failed to auto-migrate models: %v", err)
 	}
 
@@ -66,89 +73,61 @@ func main() {
 	appointmentRepository := appointment.NewGormRepository(database)
 	appointmentService := appointment.NewService(appointmentRepository, notificationService, calendarAdapter, notificationConfiguration)
 
-	userRepository := user.NewGormRepository(database)
-	userService := user.NewService(userRepository)
-
-	authConfiguration := auth.Auth0Config{
-		Domain:       configuration.AuthDomain,
-		ClientID:     configuration.AuthClientID,
-		ClientSecret: configuration.AuthClientSecret,
-		CallbackURL:  configuration.AuthCallbackURL,
-		Audience:     configuration.AuthAudience,
-	}
-	authProvider := "auth0"
-	authAdapter, err := auth.NewAuthAdapterFactory(authProvider, authConfiguration)
-	if err != nil {
-		log.Fatalf("Auth adapter initialization error: %v", err)
-	}
+	clerk.SetKey(configuration.ClerkSecretKey)
 
 	router := gin.Default()
 	store := cookie.NewStore([]byte("super-secret-key"))
 	router.Use(sessions.Sessions("auth-session", store))
-	router.Use(authAdapter.Middleware())
 
-	// --- Auth Routes ---
+	protected := clerkhttp.WithHeaderAuthorization()
+
+	router.GET("/", func(context *gin.Context) {
+		context.JSON(http.StatusOK, gin.H{"access": "public"})
+	})
+
+	router.GET("/protected", GinWrap(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		claims, ok := clerk.SessionClaimsFromContext(r.Context())
+		if !ok {
+			w.WriteHeader(http.StatusUnauthorized)
+			w.Write([]byte(`{"access": "unauthorized"}`))
+			return
+		}
+		usr, err := user.Get(r.Context(), claims.Subject)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(fmt.Sprintf(`{"error": "%v"}`, err)))
+			return
+		}
+		fmt.Fprintf(w, `{"user_id": "%s", "user_banned": %t}`, usr.ID, usr.Banned)
+	})))
+	
+	router.GET("/protected", GinWrap(protected(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		claims, ok := clerk.SessionClaimsFromContext(r.Context())
+		if !ok {
+			w.WriteHeader(http.StatusUnauthorized)
+			w.Write([]byte(`{"access": "unauthorized"}`))
+			return
+		}
+		usr, err := user.Get(r.Context(), claims.Subject)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(fmt.Sprintf(`{"error": "%v"}`, err)))
+			return
+		}
+		fmt.Fprintf(w, `{"user_id": "%s", "user_banned": %t}`, usr.ID, usr.Banned)
+	}))))
 
 	router.GET("/login", func(context *gin.Context) {
 		state, err := generateSecureState()
 		if err != nil {
-			log.Printf("Failed to generate state: %v", err)
-			context.String(http.StatusInternalServerError, "Internal Server Error")
+			context.String(http.StatusInternalServerError, "Failed to generate state")
 			return
 		}
 		session := sessions.Default(context)
 		session.Set("state", state)
-		if err := session.Save(); err != nil {
-			log.Printf("Failed to save session: %v", err)
-			context.String(http.StatusInternalServerError, "Internal Server Error")
-			return
-		}
-		oauth2Config := authAdapter.(*auth.Auth0Adapter).OAuth2Config
-		context.Redirect(http.StatusTemporaryRedirect, oauth2Config.AuthCodeURL(state))
-	})
-
-	router.GET("/callback", func(context *gin.Context) {
-		session := sessions.Default(context)
-		if context.Query("state") != session.Get("state") {
-			context.String(http.StatusBadRequest, "Invalid state parameter")
-			return
-		}
-
-		code := context.Query("code")
-		oauth2Config := authAdapter.(*auth.Auth0Adapter).OAuth2Config
-		token, err := oauth2Config.Exchange(context.Request.Context(), code)
-		if err != nil {
-			context.String(http.StatusUnauthorized, "Failed to exchange authorization code for token")
-			return
-		}
-
-		rawIDToken, ok := token.Extra("id_token").(string)
-		if !ok {
-			context.String(http.StatusInternalServerError, "No id_token field in token")
-			return
-		}
-		idToken, err := authAdapter.(*auth.Auth0Adapter).Verifier.Verify(context.Request.Context(), rawIDToken)
-		if err != nil {
-			context.String(http.StatusInternalServerError, "Failed to verify ID token")
-			return
-		}
-		var claims map[string]interface{}
-		if err := idToken.Claims(&claims); err != nil {
-			context.String(http.StatusInternalServerError, "Failed to parse token claims")
-			return
-		}
-
-		registeredUser, err := userService.SyncUserFromClaims(claims)
-		if err != nil {
-			context.String(http.StatusInternalServerError, "Failed to register user: " + err.Error())
-			return
-		}
-
-		session.Set("access_token", token.AccessToken)
-		session.Set("profile", registeredUser)
 		session.Save()
 
-		context.Redirect(http.StatusTemporaryRedirect, "/profile")
+		context.Redirect(http.StatusTemporaryRedirect, "https://dashboard.clerk.dev/sign-in")
 	})
 
 	router.GET("/logout", func(context *gin.Context) {
@@ -156,33 +135,8 @@ func main() {
 		session.Clear()
 		session.Save()
 
-		logoutURL := fmt.Sprintf("https://%s/v2/logout?client_id=%s&returnTo=%s", configuration.AuthDomain, configuration.AuthClientID, "http://localhost:3000")
-		context.Redirect(http.StatusTemporaryRedirect, logoutURL)
+		context.Redirect(http.StatusTemporaryRedirect, "http://localhost:3000")
 	})
-
-	// --- Protected Routes ---
-
-	router.GET("/profile", func(context *gin.Context) {
-		session := sessions.Default(context)
-		profile := session.Get("profile")
-		if profile == nil {
-			context.Redirect(http.StatusSeeOther, "/login")
-			return
-		}
-		context.JSON(http.StatusOK, profile)
-	})
-
-	router.PUT("/profile", func(context *gin.Context) {
-		var profileUpdate map[string]interface{}
-		if err := context.ShouldBindJSON(&profileUpdate); err != nil {
-			context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-		// TODO: Update the user profile in the database.
-		context.JSON(http.StatusOK, gin.H{"message": "Profile updated", "profile": profileUpdate})
-	})
-
-	// --- Appointment Endpoints
 
 	router.POST("/appointments", func(context *gin.Context) {
 		providerID := uint(1)
@@ -204,7 +158,6 @@ func main() {
 			context.JSON(http.StatusBadRequest, gin.H{"error": "Invalid appointment ID"})
 			return
 		}
-
 		var request struct {
 			NewStartTime string `json:"newStartTime"`
 			NewEndTime   string `json:"newEndTime"`
@@ -213,7 +166,6 @@ func main() {
 			context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-
 		newStartTime, err := time.Parse(time.RFC3339, request.NewStartTime)
 		if err != nil {
 			context.JSON(http.StatusBadRequest, gin.H{"error": "Invalid start time format"})
@@ -224,7 +176,6 @@ func main() {
 			context.JSON(http.StatusBadRequest, gin.H{"error": "Invalid end time format"})
 			return
 		}
-
 		appointment, err := appointmentService.RescheduleAppointment(uint(id), newStartTime, newEndTime)
 		if err != nil {
 			context.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -240,9 +191,7 @@ func main() {
 			context.JSON(http.StatusBadRequest, gin.H{"error": "Invalid appointment ID"})
 			return
 		}
-
-		err = appointmentService.CancelAppointment(uint(id))
-		if err != nil {
+		if err := appointmentService.CancelAppointment(uint(id)); err != nil {
 			context.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -250,7 +199,7 @@ func main() {
 	})
 
 	log.Printf("Starting Harmonia on port %s", configuration.Port)
-	if err := http.ListenAndServe(":" + configuration.Port, router); err != nil {
+	if err := http.ListenAndServe(":"+configuration.Port, router); err != nil {
 		log.Fatalf("Server error: %v", err)
 	}
 }
