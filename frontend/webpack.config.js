@@ -16,6 +16,24 @@ module.exports = {
   // Enable source maps for debugging.
   devtool: 'source-map',
 
+  devServer: {
+    historyApiFallback: true,
+    static: {
+      directory: path.join(__dirname, 'public'),
+    },
+    host: "0.0.0.0",
+    allowedHosts: "all",
+    port: 8080,
+    open: true,
+    client: {
+      webSocketURL: {
+        hostname: "reimagined-goggles-wgg96677x97c7q6-8080.app.github.dev",
+        port: 443,
+        protocol: "wss",
+      },
+    },
+  },
+
   // Resolve these file extensions.
   resolve: {
     extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],

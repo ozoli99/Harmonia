@@ -1,16 +1,17 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import App from './App';
-import './index.css';
-import { ToastProvider } from './contexts/ToastContext';
-import ToastContainer from './components/ToastContainer';
+import React from "react";
+import ReactDOM from "react-dom/client";
+import { BrowserRouter as Router } from "react-router-dom";
+import App from "./App";
+import Auth0ProviderWithHistory from "./auth/Auth0ProviderWithHistory";
+import "./index.css";
 
-const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);
+const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement);
 root.render(
     <React.StrictMode>
-        <ToastProvider>
-            <App />
-            <ToastContainer />
-        </ToastProvider>
+        <Router>
+            <Auth0ProviderWithHistory>
+                <App />
+            </Auth0ProviderWithHistory>
+        </Router>
     </React.StrictMode>
 );

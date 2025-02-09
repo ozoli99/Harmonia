@@ -1,41 +1,30 @@
-import React, { useEffect, useState } from 'react';
-import axios from '../utils/api';
-import { ExtendedUser } from '../types/User';
-import ProfileCard from '../components/ProfileCard';
+import React from 'react';
+import { useAuth0 } from '@auth0/auth0-react';
+import LogoutButton from '../components/LogoutButton';
 
 const Profile: React.FC = () => {
-    const [user, setUser] = useState<ExtendedUser | null>(null);
-    const [loading, setLoading] = useState(true);
+    const { user, isAuthenticated, isLoading } = useAuth0();
 
-    useEffect(() => {
-        axios.get("/profile").then((response) => {
-            setUser(response.data);
-            setLoading(false);
-        }).catch((err) => {
-            console.error("Error fetching profile:", err);
-            setLoading(false);
-        });
-    }, []);
+    if (isLoading) return <div>Loading...</div>;
 
-    if (loading) {
-        return (
-            <div className="flex justify-center items-center h-screen">
-                <span className="text-xl text-gray-600">Loading...</span>
-            </div>
-        );
-    }
-
-    if (!user) {
-        return (
-            <div className="flex justify-center items-center h-screen">
-                <span className="text-xl text-gray-600">User not found</span>
-            </div>
-        );
-    }
+    if (!isAuthenticated) return <div>You are not logged in</div>;
 
     return (
         <div className="container mx-auto p-8">
-            <ProfileCard user={user} />
+            <div className="max-w-md mx-auto bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+                <img
+                    src={user?.picture}
+                    alt={user?.name}
+                    className="w-24 h-24 rounded-full mx-auto border border-gray-300"
+                />
+                <h2 className="mt-4 text-2xl font-bold text-center text-gray-900 dark:text-white">
+                    {user?.name}
+                </h2>
+                <p className="mt-2 text-center text-gray-600 dark:text-gray-300">{user?.email}</p>
+                <div className="mt-4 flex justify-center">
+                    <LogoutButton />
+                </div>
+            </div>
         </div>
     );
 };
