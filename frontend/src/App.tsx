@@ -9,6 +9,8 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import PageTransition from "./components/PageTransition";
 import SkeletonLoader from "./components/SkeletonLoader";
 import ProtectedRoute from "./components/ProtectedRoute";
+import ScrollToTop from "./components/ScrollToTop";
+import SkipToContent from "./components/SkipToContent";
 
 const Home = lazy(() => import("./pages/Home"));
 const Login = lazy(() => import("./pages/Login"));
@@ -29,6 +31,9 @@ const App: React.FC = () => {
     return (
         <ToastProvider>
             <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+                <SkipToContent />
+                <ScrollToTop />
+                
                 <Navbar />
 
                 <Container className="py-20">
