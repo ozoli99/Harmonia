@@ -8,6 +8,7 @@ import ToastContainer from "./components/ToastContainer";
 import ErrorBoundary from "./components/ErrorBoundary";
 import PageTransition from "./components/PageTransition";
 import SkeletonLoader from "./components/SkeletonLoader";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const Home = lazy(() => import("./pages/Home"));
 const Login = lazy(() => import("./pages/Login"));
@@ -42,18 +43,19 @@ const App: React.FC = () => {
                             <Routes>
                                 <Route path="/" element={<PageTransition><Home /></PageTransition>} />
                                 <Route path="/login" element={<PageTransition><Login /></PageTransition>} />
-                                <Route path="/dashboard" element={<PageTransition><Dashboard /></PageTransition>} />
-                                <Route path="/appointments" element={<PageTransition><Appointments /></PageTransition>} />
-                                <Route path="/profile" element={<PageTransition><Profile /></PageTransition>} />
-                                <Route path="/analytics" element={<PageTransition><AnalyticsDashboard /></PageTransition>} />
-                                <Route path="/calendar" element={<PageTransition><Calendar /></PageTransition>} />
-                                <Route path="/settings" element={<PageTransition><ProfileEditor /></PageTransition>} />
-                                <Route path="/book" element={<PageTransition><AppointmentBookingForm /></PageTransition>} />
-                                <Route path="/clients" element={<PageTransition><ClientManagement /></PageTransition>} />
-                                <Route path="/payments" element={<PageTransition><PaymentProcessingView /></PageTransition>} />
-                                <Route path="/messages" element={<PageTransition><Messages /></PageTransition>} />
-                                <Route path="/sessions" element={<PageTransition><SessionManagement /></PageTransition>} />
-                                <Route path="/services" element={<PageTransition><ServiceMenu /></PageTransition>} />
+                                
+                                <Route path="/dashboard" element={<ProtectedRoute><PageTransition><Dashboard /></PageTransition></ProtectedRoute>} />
+                                <Route path="/appointments" element={<ProtectedRoute><PageTransition><Appointments /></PageTransition></ProtectedRoute>} />
+                                <Route path="/profile" element={<ProtectedRoute><PageTransition><Profile /></PageTransition></ProtectedRoute>} />
+                                <Route path="/analytics" element={<ProtectedRoute><PageTransition><AnalyticsDashboard /></PageTransition></ProtectedRoute>} />
+                                <Route path="/calendar" element={<ProtectedRoute><PageTransition><Calendar /></PageTransition></ProtectedRoute>} />
+                                <Route path="/settings" element={<ProtectedRoute><PageTransition><ProfileEditor /></PageTransition></ProtectedRoute>} />
+                                <Route path="/book" element={<ProtectedRoute><PageTransition><AppointmentBookingForm /></PageTransition></ProtectedRoute>} />
+                                <Route path="/clients" element={<ProtectedRoute><PageTransition><ClientManagement /></PageTransition></ProtectedRoute>} />
+                                <Route path="/payments" element={<ProtectedRoute><PageTransition><PaymentProcessingView /></PageTransition></ProtectedRoute>} />
+                                <Route path="/messages" element={<ProtectedRoute><PageTransition><Messages /></PageTransition></ProtectedRoute>} />
+                                <Route path="/sessions" element={<ProtectedRoute><PageTransition><SessionManagement /></PageTransition></ProtectedRoute>} />
+                                <Route path="/services" element={<ProtectedRoute><PageTransition><ServiceMenu /></PageTransition></ProtectedRoute>} />
                             </Routes>
                         </Suspense>
                     </ErrorBoundary>
