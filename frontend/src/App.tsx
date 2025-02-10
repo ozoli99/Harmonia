@@ -26,6 +26,7 @@ const PaymentProcessingView = lazy(() => import("./pages/PaymentProcessingView")
 const Messages = lazy(() => import("./pages/Messages"));
 const SessionManagement = lazy(() => import("./pages/SessionManagement"));
 const ServiceMenu = lazy(() => import("./pages/ServiceMenu"));
+const BrandingSettings = lazy(() => import("./pages/BrandingSettings"));
 
 const App: React.FC = () => {
     return (
@@ -61,6 +62,7 @@ const App: React.FC = () => {
                                 <Route path="/messages" element={<ProtectedRoute><PageTransition><Messages /></PageTransition></ProtectedRoute>} />
                                 <Route path="/sessions" element={<ProtectedRoute><PageTransition><SessionManagement /></PageTransition></ProtectedRoute>} />
                                 <Route path="/services" element={<ProtectedRoute><PageTransition><ServiceMenu /></PageTransition></ProtectedRoute>} />
+                                <Route path="/branding" element={<ProtectedRoute><PageTransition><BrandingSettings /></PageTransition></ProtectedRoute>} />
                             </Routes>
                         </Suspense>
                     </ErrorBoundary>
