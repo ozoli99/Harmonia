@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm, SubmitHandler } from 'react-hook-form';
 
 interface AppointmentBookingFormInputs {
@@ -9,23 +9,41 @@ interface AppointmentBookingFormInputs {
 }
 
 const AppointmentBookingForm: React.FC = () => {
-    const { register, handleSubmit, formState: { errors } } = useForm<AppointmentBookingFormInputs>();
+    const {
+        register,
+        handleSubmit,
+        formState: { errors },
+        reset,
+    } = useForm<AppointmentBookingFormInputs>();
+    const [successMessage, setSuccessMessage] = useState('');
+  
     const onSubmit: SubmitHandler<AppointmentBookingFormInputs> = (data) => {
-        // TODO: Integrate with your appointment service API call
+        // Simulate an API call
         console.log("Booking appointment:", data);
+        setSuccessMessage('Your appointment has been booked successfully!');
+        reset();
+        setTimeout(() => setSuccessMessage(''), 5000);
     };
-
+  
     return (
         <div className="max-w-lg mx-auto p-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg">
-            <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">Book an Appointment</h2>
+            <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">Book an Appointment</h2>
+            {successMessage && (
+                <div className="mb-4 p-4 bg-green-100 text-green-800 rounded">
+                    {successMessage}
+                </div>
+            )}
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                 <div>
-                    <label htmlFor="massageType" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <label
+                        htmlFor="massageType"
+                        className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    >
                         Massage Type
                     </label>
                     <select
-                        {...register("massageType", { required: "Massage type is required" })}
                         id="massageType"
+                        {...register("massageType", { required: "Please select a massage type" })}
                         className="mt-1 block w-full p-2 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                         <option value="">Select a service</option>
@@ -39,41 +57,47 @@ const AppointmentBookingForm: React.FC = () => {
                     )}
                 </div>
                 <div>
-                    <label htmlFor="date" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <label
+                        htmlFor="date"
+                        className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    >
                         Date
                     </label>
                     <input
+                        id="date"
                         type="date"
                         {...register("date", { required: "Date is required" })}
-                        id="date"
                         className="mt-1 block w-full p-2 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
-                    {errors.date && (
-                        <p className="text-red-500 text-sm mt-1">{errors.date.message}</p>
-                    )}
+                    {errors.date && <p className="text-red-500 text-sm mt-1">{errors.date.message}</p>}
                 </div>
                 <div>
-                    <label htmlFor="time" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <label
+                        htmlFor="time"
+                        className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    >
                         Time
                     </label>
                     <input
+                        id="time"
                         type="time"
                         {...register("time", { required: "Time is required" })}
-                        id="time"
                         className="mt-1 block w-full p-2 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
-                    {errors.time && (
-                        <p className="text-red-500 text-sm mt-1">{errors.time.message}</p>
-                    )}
+                    {errors.time && <p className="text-red-500 text-sm mt-1">{errors.time.message}</p>}
                 </div>
                 <div>
-                    <label htmlFor="notes" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <label
+                        htmlFor="notes"
+                        className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    >
                         Notes (Optional)
                     </label>
                     <textarea
-                        {...register("notes")}
                         id="notes"
+                        {...register("notes")}
                         rows={3}
+                        placeholder="Any specific requests or notes..."
                         className="mt-1 block w-full p-2 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                 </div>
