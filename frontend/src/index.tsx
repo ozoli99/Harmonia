@@ -4,6 +4,7 @@ import { BrowserRouter as Router } from "react-router-dom";
 import { ClerkProvider } from "@clerk/clerk-react";
 import App from "./App";
 import "./index.css";
+import "./i18n";
 
 const clerkPublishableKey = "pk_test_Z3JhdGVmdWwtbW90aC05NC5jbGVyay5hY2NvdW50cy5kZXYk"; // Get this from your Clerk Dashboard
 

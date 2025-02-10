@@ -5,6 +5,9 @@ import Container from "./components/Container";
 import Footer from "./components/Footer";
 import { ToastProvider } from "./contexts/ToastContext";
 import ToastContainer from "./components/ToastContainer";
+import ErrorBoundary from "./components/ErrorBoundary";
+import PageTransition from "./components/PageTransition";
+import SkeletonLoader from "./components/SkeletonLoader";
 
 const Home = lazy(() => import("./pages/Home"));
 const Login = lazy(() => import("./pages/Login"));
@@ -28,24 +31,32 @@ const App: React.FC = () => {
                 <Navbar />
 
                 <Container className="py-20">
-                    <Suspense fallback={<div className="text-center mt-8">Loading...</div>}>
-                        <Routes>
-                            <Route path="/" element={<Home />} />
-                            <Route path="/login" element={<Login />} />
-                            <Route path="/dashboard" element={<Dashboard />} />
-                            <Route path="/appointments" element={<Appointments />} />
-                            <Route path="/profile" element={<Profile />} />
-                            <Route path="/analytics" element={<AnalyticsDashboard />} />
-                            <Route path="/calendar" element={<Calendar />} />
-                            <Route path="/settings" element={<ProfileEditor />} />
-                            <Route path="/book" element={<AppointmentBookingForm />} />
-                            <Route path="/clients" element={<ClientManagement />} />
-                            <Route path="/payments" element={<PaymentProcessingView />} />
-                            <Route path="/messages" element={<Messages />} />
-                            <Route path="/sessions" element={<SessionManagement />} />
-                            <Route path="/services" element={<ServiceMenu />} />
-                        </Routes>
-                    </Suspense>
+                    <ErrorBoundary>
+                        <Suspense fallback={
+                            <div className="space-y-4 p-8">
+                                <SkeletonLoader height="h-8" width="w-3/4" />
+                                <SkeletonLoader height="h-6" width="w-full" />
+                                <SkeletonLoader height="h-6" width="w-full" />
+                            </div>
+                        }>
+                            <Routes>
+                                <Route path="/" element={<PageTransition><Home /></PageTransition>} />
+                                <Route path="/login" element={<PageTransition><Login /></PageTransition>} />
+                                <Route path="/dashboard" element={<PageTransition><Dashboard /></PageTransition>} />
+                                <Route path="/appointments" element={<PageTransition><Appointments /></PageTransition>} />
+                                <Route path="/profile" element={<PageTransition><Profile /></PageTransition>} />
+                                <Route path="/analytics" element={<PageTransition><AnalyticsDashboard /></PageTransition>} />
+                                <Route path="/calendar" element={<PageTransition><Calendar /></PageTransition>} />
+                                <Route path="/settings" element={<PageTransition><ProfileEditor /></PageTransition>} />
+                                <Route path="/book" element={<PageTransition><AppointmentBookingForm /></PageTransition>} />
+                                <Route path="/clients" element={<PageTransition><ClientManagement /></PageTransition>} />
+                                <Route path="/payments" element={<PageTransition><PaymentProcessingView /></PageTransition>} />
+                                <Route path="/messages" element={<PageTransition><Messages /></PageTransition>} />
+                                <Route path="/sessions" element={<PageTransition><SessionManagement /></PageTransition>} />
+                                <Route path="/services" element={<PageTransition><ServiceMenu /></PageTransition>} />
+                            </Routes>
+                        </Suspense>
+                    </ErrorBoundary>
                 </Container>
 
                 <Footer />
