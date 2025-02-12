@@ -1,7 +1,6 @@
 import React, { Suspense, lazy } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
-import Container from "./components/Container";
 import Footer from "./components/Footer";
 import { ToastProvider } from "./contexts/ToastContext";
 import ToastContainer from "./components/ToastContainer";
@@ -27,6 +26,7 @@ const Messages = lazy(() => import("./pages/Messages"));
 const SessionManagement = lazy(() => import("./pages/SessionManagement"));
 const ServiceMenu = lazy(() => import("./pages/ServiceMenu"));
 const BrandingSettings = lazy(() => import("./pages/BrandingSettings"));
+const Support = lazy(() => import("./pages/Support"));
 
 const App: React.FC = () => {
     return (
@@ -37,36 +37,35 @@ const App: React.FC = () => {
                 
                 <Navbar />
 
-                <Container className="py-20">
-                    <ErrorBoundary>
-                        <Suspense fallback={
-                            <div className="space-y-4 p-8">
-                                <SkeletonLoader height="h-8" width="w-3/4" />
-                                <SkeletonLoader height="h-6" width="w-full" />
-                                <SkeletonLoader height="h-6" width="w-full" />
-                            </div>
-                        }>
-                            <Routes>
-                                <Route path="/" element={<PageTransition><Home /></PageTransition>} />
-                                <Route path="/login" element={<PageTransition><Login /></PageTransition>} />
+                <ErrorBoundary>
+                    <Suspense fallback={
+                        <div className="space-y-4 p-8">
+                            <SkeletonLoader height="h-8" width="w-3/4" />
+                            <SkeletonLoader height="h-6" width="w-full" />
+                            <SkeletonLoader height="h-6" width="w-full" />
+                        </div>
+                    }>
+                        <Routes>
+                            <Route path="/" element={<PageTransition><Home /></PageTransition>} />
+                            <Route path="/login" element={<PageTransition><Login /></PageTransition>} />
                                 
-                                <Route path="/dashboard" element={<ProtectedRoute><PageTransition><Dashboard /></PageTransition></ProtectedRoute>} />
-                                <Route path="/appointments" element={<ProtectedRoute><PageTransition><Appointments /></PageTransition></ProtectedRoute>} />
-                                <Route path="/profile" element={<ProtectedRoute><PageTransition><Profile /></PageTransition></ProtectedRoute>} />
-                                <Route path="/analytics" element={<ProtectedRoute><PageTransition><AnalyticsDashboard /></PageTransition></ProtectedRoute>} />
-                                <Route path="/calendar" element={<ProtectedRoute><PageTransition><Calendar /></PageTransition></ProtectedRoute>} />
-                                <Route path="/settings" element={<ProtectedRoute><PageTransition><ProfileEditor /></PageTransition></ProtectedRoute>} />
-                                <Route path="/book" element={<ProtectedRoute><PageTransition><AppointmentBookingForm /></PageTransition></ProtectedRoute>} />
-                                <Route path="/clients" element={<ProtectedRoute><PageTransition><ClientManagement /></PageTransition></ProtectedRoute>} />
-                                <Route path="/payments" element={<ProtectedRoute><PageTransition><PaymentProcessingView /></PageTransition></ProtectedRoute>} />
-                                <Route path="/messages" element={<ProtectedRoute><PageTransition><Messages /></PageTransition></ProtectedRoute>} />
-                                <Route path="/sessions" element={<ProtectedRoute><PageTransition><SessionManagement /></PageTransition></ProtectedRoute>} />
-                                <Route path="/services" element={<ProtectedRoute><PageTransition><ServiceMenu /></PageTransition></ProtectedRoute>} />
-                                <Route path="/branding" element={<ProtectedRoute><PageTransition><BrandingSettings /></PageTransition></ProtectedRoute>} />
-                            </Routes>
-                        </Suspense>
-                    </ErrorBoundary>
-                </Container>
+                            <Route path="/dashboard" element={<ProtectedRoute><PageTransition><Dashboard /></PageTransition></ProtectedRoute>} />
+                            <Route path="/appointments" element={<ProtectedRoute><PageTransition><Appointments /></PageTransition></ProtectedRoute>} />
+                            <Route path="/profile" element={<ProtectedRoute><PageTransition><Profile /></PageTransition></ProtectedRoute>} />
+                            <Route path="/analytics" element={<ProtectedRoute><PageTransition><AnalyticsDashboard /></PageTransition></ProtectedRoute>} />
+                            <Route path="/calendar" element={<ProtectedRoute><PageTransition><Calendar /></PageTransition></ProtectedRoute>} />
+                            <Route path="/settings" element={<ProtectedRoute><PageTransition><ProfileEditor /></PageTransition></ProtectedRoute>} />
+                            <Route path="/book" element={<ProtectedRoute><PageTransition><AppointmentBookingForm /></PageTransition></ProtectedRoute>} />
+                            <Route path="/clients" element={<ProtectedRoute><PageTransition><ClientManagement /></PageTransition></ProtectedRoute>} />
+                            <Route path="/payments" element={<ProtectedRoute><PageTransition><PaymentProcessingView /></PageTransition></ProtectedRoute>} />
+                            <Route path="/messages" element={<ProtectedRoute><PageTransition><Messages /></PageTransition></ProtectedRoute>} />
+                            <Route path="/sessions" element={<ProtectedRoute><PageTransition><SessionManagement /></PageTransition></ProtectedRoute>} />
+                            <Route path="/services" element={<ProtectedRoute><PageTransition><ServiceMenu /></PageTransition></ProtectedRoute>} />
+                            <Route path="/branding" element={<ProtectedRoute><PageTransition><BrandingSettings /></PageTransition></ProtectedRoute>} />
+                            <Route path="/support" element={<ProtectedRoute><PageTransition><Support /></PageTransition></ProtectedRoute>} />
+                        </Routes>
+                    </Suspense>
+                </ErrorBoundary>
 
                 <Footer />
                 <ToastContainer />
