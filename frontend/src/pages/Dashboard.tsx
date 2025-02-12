@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import dayjs from "dayjs";
 import { ResponsiveLine } from "@nivo/line";
+import NotificationsPanel from "../components/NotificationsPanel";
 import AppointmentCard from "../components/AppointmentCard";
 import GlobalSearch from "../components/GlobalSearch";
 import { CalendarIcon, UserIcon, ChartBarIcon, BellIcon } from "@heroicons/react/24/outline";
@@ -33,6 +34,7 @@ const Dashboard: React.FC = () => {
     const today = dayjs().format("dddd, MMMM D, YYYY");
 
     const [revenueFilter, setRevenueFilter] = useState<"weekly" | "monthly" | "yearly">("monthly");
+    const [showNotifications, setShowNotifications] = useState(false);
 
     const revenueData = {
         weekly: [{ x: "Mon", y: 300 }, { x: "Tue", y: 450 }, { x: "Wed", y: 500 }, { x: "Thu", y: 600 }, { x: "Fri", y: 700 }],
@@ -80,7 +82,7 @@ const Dashboard: React.FC = () => {
     };
 
     return (
-        <div className="p-8 space-y-8 min-h-screen bg-gradient-to-b from-gray-100 via-white to-gray-200 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-all">
+        <div className="p-8 space-y-8 min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-200 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-all">
             <GlobalSearch onSearch={(query) => console.log("Searching for:", query)} />
 
             <header className="flex flex-col md:flex-row items-center justify-between gap-6">
@@ -89,13 +91,17 @@ const Dashboard: React.FC = () => {
                     <p className="text-gray-600 dark:text-gray-400">{today}</p>
                 </div>
                 <motion.div
-                    className="bg-gradient-to-r from-blue-500 to-purple-500 text-white py-2 px-6 rounded-full shadow-lg font-medium flex items-center gap-2 transition-all"
+                    className="relative cursor-pointer bg-gradient-to-r from-blue-500 to-purple-500 text-white py-2 px-6 rounded-full shadow-lg font-medium flex items-center gap-2 transition-all"
                     whileHover={{ scale: 1.05 }}
+                    onClick={() => setShowNotifications(!showNotifications)}
                 >
                     <BellIcon className="w-5 h-5" />
-                    Free Trial: 7 days remaining
+                    Notifications
+                    <span className="absolute -top-1 -right-2 bg-red-500 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">3</span>
                 </motion.div>
             </header>
+
+            {showNotifications && <NotificationsPanel onClose={() => setShowNotifications(false)} />}
 
             <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                 <SortableContext items={stats.map((stat) => stat.id)} strategy={verticalListSortingStrategy}>
@@ -119,25 +125,29 @@ const Dashboard: React.FC = () => {
             </DndContext>
 
             <section className="bg-white dark:bg-gray-900 rounded-xl shadow-md p-6">
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Revenue Trend</h3>
-                <select 
-                    className="bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-1 rounded mb-4"
-                    value={revenueFilter}
-                    onChange={(e) => setRevenueFilter(e.target.value as "weekly" | "monthly" | "yearly")}
-                >
-                    <option value="weekly">Weekly</option>
-                    <option value="monthly">Monthly</option>
-                    <option value="yearly">Yearly</option>
-                </select>
+                <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Revenue Trend</h3>
+                    <select
+                        className="bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-1 rounded"
+                        value={revenueFilter}
+                        onChange={(e) => setRevenueFilter(e.target.value as "weekly" | "monthly" | "yearly")}
+                    >
+                        <option value="weekly">Weekly</option>
+                        <option value="monthly">Monthly</option>
+                        <option value="yearly">Yearly</option>
+                    </select>
+                </div>
                 <div className="h-40">
                     <ResponsiveLine
                         data={[{ id: "Revenue", data: revenueData[revenueFilter] }]}
                         margin={{ top: 20, right: 20, bottom: 40, left: 50 }}
                         xScale={{ type: "point" }}
                         yScale={{ type: "linear", min: 0, max: 4000 }}
+                        axisBottom={{ tickSize: 5, tickPadding: 5 }}
                         colors={["#6366F1"]}
                         lineWidth={3}
                         pointSize={6}
+                        useMesh={true}
                     />
                 </div>
             </section>
