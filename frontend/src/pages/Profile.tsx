@@ -2,36 +2,32 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { useUser } from "@clerk/clerk-react";
 import LogoutButton from "../components/LogoutButton";
-import { CameraIcon, ShieldCheckIcon, MoonIcon, BellIcon } from "@heroicons/react/24/outline";
+import { CameraIcon, ShieldCheckIcon, MoonIcon, BellIcon, CalendarIcon, ClockIcon, MapPinIcon } from "@heroicons/react/24/outline";
 
 const Profile: React.FC = () => {
     const { user, isSignedIn, isLoaded } = useUser();
     const [uploading, setUploading] = useState(false);
+    const [darkMode, setDarkMode] = useState(true);
+    const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+    const [twoFactorEnabled, setTwoFactorEnabled] = useState(true);
 
     if (!isLoaded) return <div className="p-8 text-center">Loading...</div>;
     if (!isSignedIn || !user) return <div className="p-8 text-center">You are not logged in</div>;
 
-    const profileImage = (user as any).profileImageUrl || user.imageUrl || "https://via.placeholder.com/150";
-    const email = user.emailAddresses?.[0]?.emailAddress || "No email available";
-    const role = (user.publicMetadata as any)?.role || "User";
-    const lastLogin = new Date(user.lastSignInAt || "").toLocaleString();
+    const profileImage = (user as any)?.profileImageUrl || user?.imageUrl || "https://via.placeholder.com/150";
+    const email = user?.emailAddresses?.[0]?.emailAddress || "No email available";
 
-    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-        setUploading(true);
-
-        // TODO: Replace with actual upload logic
-        setTimeout(() => {
-            console.log("Profile picture updated:", file);
-            setUploading(false);
-        }, 1500);
+    const nextAppointment = {
+        date: "Monday, March 4",
+        time: "3:00 PM",
+        type: "Deep Tissue Massage",
+        location: "Room 5, Wellness Center",
     };
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-6">
             <motion.div
-                className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border border-gray-200 dark:border-gray-700 shadow-2xl rounded-3xl p-8 max-w-lg w-full"
+                className="bg-white/90 dark:bg-gray-800/80 backdrop-blur-lg border border-gray-200 dark:border-gray-700 shadow-xl rounded-3xl p-8 max-w-lg w-full"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, ease: "easeOut" }}
@@ -39,83 +35,72 @@ const Profile: React.FC = () => {
                 <div className="relative flex flex-col items-center text-center">
                     <motion.img
                         src={profileImage}
-                        alt={`${user.firstName} ${user.lastName}`}
+                        alt="Profile"
                         className="w-32 h-32 rounded-full border-4 border-gray-300 dark:border-gray-600 shadow-lg object-cover"
                         whileHover={{ scale: 1.05 }}
                     />
-                    
-                    <label htmlFor="profile-upload" className="absolute bottom-2 right-2 bg-white dark:bg-gray-700 p-2 rounded-full shadow-md cursor-pointer">
-                        <CameraIcon className="w-5 h-5 text-gray-500 dark:text-gray-300" />
-                        <input type="file" id="profile-upload" className="hidden" onChange={handleImageUpload} />
+                    <label htmlFor="profile-upload" className="absolute bottom-2 right-2 bg-white dark:bg-gray-700 p-2 rounded-full shadow-md cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition">
+                        <CameraIcon className="w-6 h-6 text-gray-600 dark:text-gray-300" />
+                        <input type="file" id="profile-upload" className="hidden" />
                     </label>
-
-                    {uploading && <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">Uploading...</p>}
-
-                    <h2 className="mt-4 text-2xl font-bold text-gray-900 dark:text-white">
-                        {user.firstName} {user.lastName}
-                    </h2>
+                    <h2 className="mt-4 text-2xl font-bold text-gray-900 dark:text-white">{user.firstName} {user.lastName}</h2>
                     <p className="text-gray-500 dark:text-gray-400">{email}</p>
                 </div>
 
+                <motion.div className="p-5 mt-6 rounded-2xl bg-gray-100/80 dark:bg-gray-700/80 shadow-md border border-gray-200 dark:border-gray-600">
+                    <div className="flex items-center gap-3">
+                        <CalendarIcon className="w-6 h-6 text-blue-500" />
+                        <span className="text-gray-900 dark:text-white font-semibold text-lg">Next Appointment</span>
+                    </div>
+                    <div className="mt-3 space-y-1">
+                        <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+                            <ClockIcon className="w-5 h-5 text-purple-500" />
+                            <span>{nextAppointment.date} at {nextAppointment.time}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+                            <MapPinIcon className="w-5 h-5 text-red-500" />
+                            <span>{nextAppointment.location}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-gray-900 dark:text-white font-medium">
+                            <span className="px-3 py-1 text-sm bg-blue-500 text-white rounded-full">{nextAppointment.type}</span>
+                        </div>
+                    </div>
+                </motion.div>
+
                 <div className="mt-6 space-y-4">
-                    <motion.div
-                        className="p-4 rounded-xl bg-gray-100 dark:bg-gray-700 flex items-center justify-between shadow-md"
-                        whileHover={{ scale: 1.02 }}
-                    >
-                        <span className="text-gray-700 dark:text-gray-300 font-medium">Role</span>
-                        <span className="text-gray-900 dark:text-white">{role}</span>
-                    </motion.div>
-
-                    <motion.div
-                        className="p-4 rounded-xl bg-gray-100 dark:bg-gray-700 flex items-center justify-between shadow-md"
-                        whileHover={{ scale: 1.02 }}
-                    >
-                        <span className="text-gray-700 dark:text-gray-300 font-medium">Last Login</span>
-                        <span className="text-gray-900 dark:text-white">{lastLogin}</span>
-                    </motion.div>
-
-                    <motion.div
-                        className="p-4 rounded-xl bg-gray-100 dark:bg-gray-700 flex items-center justify-between shadow-md"
-                        whileHover={{ scale: 1.02 }}
-                    >
+                    <motion.div className="p-4 rounded-xl bg-gray-100 dark:bg-gray-700 flex items-center justify-between shadow-md">
                         <div className="flex items-center gap-2">
-                            <ShieldCheckIcon className="w-5 h-5 text-green-500" />
-                            <span className="text-gray-700 dark:text-gray-300 font-medium">Two-Factor Authentication</span>
-                        </div>
-                        <span className="text-gray-900 dark:text-white">Enabled</span>
-                    </motion.div>
-
-                    <motion.div
-                        className="p-4 rounded-xl bg-gray-100 dark:bg-gray-700 flex items-center justify-between shadow-md"
-                        whileHover={{ scale: 1.02 }}
-                    >
-                        <div className="flex items-center gap-2">
-                            <MoonIcon className="w-5 h-5 text-blue-500" />
-                            <span className="text-gray-700 dark:text-gray-300 font-medium">Dark Mode</span>
-                        </div>
-                        <span className="text-gray-900 dark:text-white">Auto</span>
-                    </motion.div>
-
-                    <motion.div
-                        className="p-4 rounded-xl bg-gray-100 dark:bg-gray-700 flex items-center justify-between shadow-md"
-                        whileHover={{ scale: 1.02 }}
-                    >
-                        <div className="flex items-center gap-2">
-                            <BellIcon className="w-5 h-5 text-yellow-500" />
+                            <BellIcon className="w-6 h-6 text-yellow-500" />
                             <span className="text-gray-700 dark:text-gray-300 font-medium">Notifications</span>
                         </div>
-                        <span className="text-gray-900 dark:text-white">Enabled</span>
+                        <button onClick={() => setNotificationsEnabled(!notificationsEnabled)}
+                            className={`px-3 py-1 text-sm font-medium rounded-full ${notificationsEnabled ? "bg-green-500 text-white" : "bg-gray-400 text-gray-900 dark:text-gray-100"}`}>
+                            {notificationsEnabled ? "On" : "Off"}
+                        </button>
+                    </motion.div>
+                    <motion.div className="p-4 rounded-xl bg-gray-100 dark:bg-gray-700 flex items-center justify-between shadow-md">
+                        <div className="flex items-center gap-2">
+                            <MoonIcon className="w-6 h-6 text-blue-500" />
+                            <span className="text-gray-700 dark:text-gray-300 font-medium">Dark Mode</span>
+                        </div>
+                        <button onClick={() => setDarkMode(!darkMode)}
+                            className={`px-3 py-1 text-sm font-medium rounded-full ${darkMode ? "bg-green-500 text-white" : "bg-gray-400 text-gray-900 dark:text-gray-100"}`}>
+                            {darkMode ? "On" : "Off"}
+                        </button>
+                    </motion.div>
+                    <motion.div className="p-4 rounded-xl bg-gray-100 dark:bg-gray-700 flex items-center justify-between shadow-md">
+                        <div className="flex items-center gap-2">
+                            <ShieldCheckIcon className="w-6 h-6 text-green-500" />
+                            <span className="text-gray-700 dark:text-gray-300 font-medium">Two-Factor Authentication</span>
+                        </div>
+                        <button onClick={() => setTwoFactorEnabled(!twoFactorEnabled)}
+                            className={`px-3 py-1 text-sm font-medium rounded-full ${twoFactorEnabled ? "bg-green-500 text-white" : "bg-gray-400 text-gray-900 dark:text-gray-100"}`}>
+                            {twoFactorEnabled ? "Enabled" : "Disabled"}
+                        </button>
                     </motion.div>
                 </div>
 
-                <div className="mt-8 flex flex-col gap-4">
-                    <motion.button
-                        className="w-full py-3 rounded-full text-white font-medium bg-gradient-to-r from-blue-500 to-purple-500 shadow-lg hover:shadow-xl transition transform hover:scale-105"
-                        whileHover={{ scale: 1.05 }}
-                    >
-                        Edit Profile
-                    </motion.button>
-
+                <div className="mt-8">
                     <LogoutButton />
                 </div>
             </motion.div>

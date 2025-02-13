@@ -1,75 +1,138 @@
-import React, { useState } from 'react';
-import ClientCard from '../components/ClientCard';
-import Modal from '../components/Modal';
+import React from "react";
+import Modal from "../components/Modal";
+import ClientCard from "../components/ClientCard";
+import ClientDetailsModal from "../components/ClientDetailsModal";
+import { 
+    MagnifyingGlassIcon, AdjustmentsVerticalIcon, ChevronDownIcon,
+    CalendarIcon, XMarkIcon, CheckIcon, BellIcon, BellSlashIcon, PencilIcon,
+    PaperAirplaneIcon, StarIcon
+} from "@heroicons/react/24/outline";
+import { motion } from "framer-motion";
+import { Tooltip } from "react-tooltip";
+import { useClients } from "../hooks/useClients";
 
-interface Client {
-    id: number;
-    name: string;
-    email: string;
-    lastAppointment: string;
-    details: string;
-}
-
-const dummyClients: Client[] = [
-    { id: 1, name: 'Client A', email: 'clienta@example.com', lastAppointment: '2024-12-31 14:00', details: 'Regular client, prefers Swedish Massage.' },
-    { id: 2, name: 'Client B', email: 'clientb@example.com', lastAppointment: '2024-11-20 10:00', details: 'First-time visitor, interested in Deep Tissue.' },
-];
-
-const ClientManagement: React.FC = () => {
-    const [searchTerm, setSearchTerm] = useState("");
-    const [selectedClient, setSelectedClient] = useState<Client | null>(null);
-
-    const filteredClients = dummyClients.filter(client =>
-        client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        client.email.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+const ClientsPage: React.FC = () => {
+    const {
+        searchTerm,
+        setSearchTerm,
+        selectedClient,
+        setSelectedClient,
+        selectedTag,
+        setSelectedTag,
+        sortOption,
+        setSortOption,
+        showFilters,
+        setShowFilters,
+        showRecurringModal,
+        setShowRecurringModal,
+        showBookingModal,
+        setShowBookingModal,
+        toggleReminder,
+        addStaffNote,
+        sendMessage,
+        submitFeedback,
+        sortedClients
+    } = useClients();
 
     return (
-        <div className="p-8 py-20">
-            <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-6">🏆 Client Management</h2>
+        <div className="p-8 py-20 min-h-screen bg-gray-50 dark:bg-gray-900 transition-all">
+            <h2 className="text-4xl font-extrabold text-gray-900 dark:text-white mb-6 tracking-tight">
+                🏆 Clients
+            </h2>
 
-            <div className="mb-6">
-                <input
-                    type="text"
-                    placeholder="🔍 Search clients..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full p-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+            {/* Search Bar */}
+            <div className="relative max-w-lg mx-auto mb-6 flex items-center gap-4">
+                <div className="relative w-full">
+                    <MagnifyingGlassIcon className="absolute left-3 top-3 w-5 h-5 text-gray-500 dark:text-gray-400" />
+                    <input
+                        type="text"
+                        placeholder="Search clients..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg bg-white/90 dark:bg-gray-800/80 backdrop-blur-md shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                    />
+                </div>
+
+                <button
+                    onClick={() => setShowFilters(!showFilters)}
+                    className="flex items-center gap-2 px-4 py-3 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white font-medium shadow-md transition-all hover:bg-gray-300 dark:hover:bg-gray-600"
+                >
+                    <AdjustmentsVerticalIcon className="w-5 h-5" />Filters
+                </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {filteredClients.map(client => (
-                    <div key={client.id} onClick={() => setSelectedClient(client)}>
-                        <ClientCard client={client} />
+            {showFilters && (
+                <motion.div 
+                    className="max-w-lg mx-auto mb-6 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-300 dark:border-gray-700"
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3 }}
+                >
+                    <div className="flex justify-between">
+                        <label className="font-medium text-gray-700 dark:text-gray-300">Filter by Category:</label>
+                        <select
+                            value={selectedTag}
+                            onChange={(e) => setSelectedTag(e.target.value as any)}
+                            className="border rounded-md px-3 py-1 dark:bg-gray-700 dark:text-white"
+                        >
+                            <option value="All">All</option>
+                            <option value="VIP">VIP</option>
+                            <option value="Frequent">Frequent</option>
+                            <option value="New">New</option>
+                        </select>
                     </div>
+                    <div className="flex justify-between mt-3">
+                        <label className="font-medium text-gray-700 dark:text-gray-300">Sort by:</label>
+                        <select
+                            value={sortOption}
+                            onChange={(e) => setSortOption(e.target.value as any)}
+                            className="border rounded-md px-3 py-1 dark:bg-gray-700 dark:text-white"
+                        >
+                            <option value="Last Appointment">Last Appointment</option>
+                            <option value="Name">Name</option>
+                            <option value="Frequency">Frequency</option>
+                        </select>
+                    </div>
+                </motion.div>
+            )}
+
+            {/* Client Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {sortedClients.map(client => (
+                    <ClientCard key={client.id} client={client} onClick={() => setSelectedClient(client)} toggleReminder={toggleReminder} />
                 ))}
             </div>
 
+            {/* Client Details Modal */}
             {selectedClient && (
-                <Modal isOpen={true} onClose={() => setSelectedClient(null)}>
-                    <div className="p-4">
-                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">{selectedClient.name}</h3>
-                        <p className="text-gray-600 dark:text-gray-300 mb-2">
-                            📧 <strong>Email:</strong> {selectedClient.email}
-                        </p>
-                        <p className="text-gray-600 dark:text-gray-300 mb-2">
-                            📅 <strong>Last Appointment:</strong> {selectedClient.lastAppointment}
-                        </p>
-                        <p className="text-gray-600 dark:text-gray-300">
-                            💬 <strong>Details:</strong> {selectedClient.details}
-                        </p>
-                        <button
-                            onClick={() => setSelectedClient(null)}
-                            className="mt-4 py-2 px-4 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 text-white font-medium shadow hover:shadow-lg transition transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                            Close
-                        </button>
+                <ClientDetailsModal />
+            )}
+
+            {showBookingModal && (
+                <Modal isOpen={true} onClose={() => setShowBookingModal(false)}>
+                    <div className="p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md max-w-md mx-auto">
+                        <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Schedule Appointment</h3>
+                        <p className="text-gray-500 dark:text-gray-400">Client: {selectedClient?.name}</p>
+                        <p className="text-gray-500 dark:text-gray-400">Email: {selectedClient?.email}</p>
+                        {/* More fields for date, time, and service selection */}
                     </div>
                 </Modal>
             )}
+
+            {showRecurringModal && (
+                <Modal isOpen={true} onClose={() => setShowRecurringModal(false)}>
+                    <div className="p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md max-w-md mx-auto">
+                        <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Manage Recurring Appointments</h3>
+                        <p className="text-gray-500 dark:text-gray-400">Client: {selectedClient?.name}</p>
+                        <p className="text-gray-500 dark:text-gray-400">Next Appointment: {selectedClient?.appointmentHistory.find(a => a.status === "Upcoming")?.date || "None"}</p>
+                        {/* Add options to reschedule, cancel, or update */}
+                    </div>
+                </Modal>
+            )}
+
+            <Tooltip id="trend" />
         </div>
     );
 };
 
-export default ClientManagement;
+export default ClientsPage;

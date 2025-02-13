@@ -34,6 +34,7 @@
     "react-i18next": "^15.4.0",
     "react-icons": "^5.4.0",
     "react-router-dom": "^7.1.5",
+    "react-tooltip": "^5.28.0",
     "tailwind-merge": "^3.0.1",
     "tailwindcss-animate": "^1.0.7"
   },
@@ -47,6 +48,7 @@
     "@types/eslint": "^9.6.1",
     "@types/estree": "^1.0.6",
     "@types/json-schema": "^7.0.15",
+    "@types/lodash.debounce": "^4.0.9",
     "@types/node": "^22.13.1",
     "@types/react": "^19.0.8",
     "@types/react-dom": "^19.0.3",

@@ -16,10 +16,7 @@ const Login = lazy(() => import("./pages/Login"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Appointments = lazy(() => import("./pages/Appointments"));
 const Profile = lazy(() => import("./pages/Profile"));
-const AnalyticsDashboard = lazy(() => import("./pages/AnalyticsDashboard"));
 const Calendar = lazy(() => import("./pages/Calendar"));
-const ProfileEditor = lazy(() => import("./pages/ProfileEditor"));
-const AppointmentBookingForm = lazy(() => import("./pages/AppointmentBookingForm"));
 const ClientManagement = lazy(() => import("./pages/ClientManagement"));
 const PaymentProcessingView = lazy(() => import("./pages/PaymentProcessingView"));
 const Messages = lazy(() => import("./pages/Messages"));
@@ -52,10 +49,7 @@ const App: React.FC = () => {
                             <Route path="/dashboard" element={<ProtectedRoute><PageTransition><Dashboard /></PageTransition></ProtectedRoute>} />
                             <Route path="/appointments" element={<ProtectedRoute><PageTransition><Appointments /></PageTransition></ProtectedRoute>} />
                             <Route path="/profile" element={<ProtectedRoute><PageTransition><Profile /></PageTransition></ProtectedRoute>} />
-                            <Route path="/analytics" element={<ProtectedRoute><PageTransition><AnalyticsDashboard /></PageTransition></ProtectedRoute>} />
                             <Route path="/calendar" element={<ProtectedRoute><PageTransition><Calendar /></PageTransition></ProtectedRoute>} />
-                            <Route path="/settings" element={<ProtectedRoute><PageTransition><ProfileEditor /></PageTransition></ProtectedRoute>} />
-                            <Route path="/book" element={<ProtectedRoute><PageTransition><AppointmentBookingForm /></PageTransition></ProtectedRoute>} />
                             <Route path="/clients" element={<ProtectedRoute><PageTransition><ClientManagement /></PageTransition></ProtectedRoute>} />
                             <Route path="/payments" element={<ProtectedRoute><PageTransition><PaymentProcessingView /></PageTransition></ProtectedRoute>} />
                             <Route path="/messages" element={<ProtectedRoute><PageTransition><Messages /></PageTransition></ProtectedRoute>} />
