@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from "react";
-import debounce from "lodash.debounce";
 import { Client } from "../types/client";
 import { dummyClients } from "../constants/clients";
 
@@ -16,22 +15,14 @@ export const useClients = () => {
     const [newMessage, setNewMessage] = useState("");
     const [newFeedback, setNewFeedback] = useState({ rating: 5, comment: "" });
 
-    const debouncedSearch = useCallback(
-        debounce((term: string) => {
-            const filtered = dummyClients.filter(
-                (client) =>
-                    client.name.toLowerCase().includes(term.toLowerCase()) ||
-                    client.email.toLowerCase().includes(term.toLowerCase())
-            );
-            setClients(filtered);
-        }, 300),
-        []
-    );
-
     useEffect(() => {
-        debouncedSearch(searchTerm);
-        return () => debouncedSearch.cancel();
-    }, [searchTerm, debouncedSearch]);
+        const filtered = dummyClients.filter(
+          (client) =>
+            client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            client.email.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+        setClients(filtered);
+    }, [searchTerm]);
 
     const toggleReminder = (clientId: number) => {
         setClients(prevClients =>

@@ -1,15 +1,12 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Modal from "../components/Modal";
 import ClientCard from "../components/ClientCard";
 import ClientDetailsModal from "../components/ClientDetailsModal";
-import { 
-    MagnifyingGlassIcon, AdjustmentsVerticalIcon, ChevronDownIcon,
-    CalendarIcon, XMarkIcon, CheckIcon, BellIcon, BellSlashIcon, PencilIcon,
-    PaperAirplaneIcon, StarIcon
-} from "@heroicons/react/24/outline";
+import { MagnifyingGlassIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { motion } from "framer-motion";
 import { Tooltip } from "react-tooltip";
 import { useClients } from "../hooks/useClients";
+import useDebounce from "../hooks/useDebounce";
 
 const ClientsPage: React.FC = () => {
     const {
@@ -34,72 +31,82 @@ const ClientsPage: React.FC = () => {
         sortedClients
     } = useClients();
 
+    const [inputValue, setInputValue] = useState(searchTerm);
+    const debouncedInputValue = useDebounce(inputValue, 300);
+
+    useEffect(() => {
+        setSearchTerm(debouncedInputValue);
+    }, [debouncedInputValue, setSearchTerm]);
+
+    const filteredClients = selectedTag === "All"
+        ? sortedClients
+        : sortedClients.filter(client => client.tag === selectedTag);
+
+    const openBookingModal = (client: any) => {
+        setSelectedClient(client);
+        setShowBookingModal(true);
+    };
+    
     return (
         <div className="p-8 py-20 min-h-screen bg-gray-50 dark:bg-gray-900 transition-all">
             <h2 className="text-4xl font-extrabold text-gray-900 dark:text-white mb-6 tracking-tight">
                 🏆 Clients
             </h2>
 
-            {/* Search Bar */}
+            {/* Search Bar & Tag Filter Display */}
             <div className="relative max-w-lg mx-auto mb-6 flex items-center gap-4">
                 <div className="relative w-full">
                     <MagnifyingGlassIcon className="absolute left-3 top-3 w-5 h-5 text-gray-500 dark:text-gray-400" />
                     <input
                         type="text"
                         placeholder="Search clients..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg bg-white/90 dark:bg-gray-800/80 backdrop-blur-md shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                        value={inputValue}
+                        onChange={(e) => setInputValue(e.target.value)}
+                        className="w-full pl-10 pr-10 py-3 border border-gray-300 dark:border-gray-700 rounded-lg bg-white/90 dark:bg-gray-800/80 backdrop-blur-md shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
                     />
+                    {inputValue && (
+                        <button
+                            onClick={() => {
+                                setInputValue("");
+                                setSearchTerm("");
+                            }}
+                            aria-label="Clear search"
+                            className="absolute right-3 top-3 text-gray-500 dark:text-gray-400 hover:text-red-500 transition-colors"
+                        >
+                            <XMarkIcon className="w-5 h-5" />
+                        </button>
+                    )}
                 </div>
 
-                <button
-                    onClick={() => setShowFilters(!showFilters)}
-                    className="flex items-center gap-2 px-4 py-3 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white font-medium shadow-md transition-all hover:bg-gray-300 dark:hover:bg-gray-600"
-                >
-                    <AdjustmentsVerticalIcon className="w-5 h-5" />Filters
-                </button>
+                {selectedTag !== "All" && (
+                    <motion.div 
+                        className={`flex items-center gap-2 top-1 left-1 text-xs px-3 py-1 rounded-full text-white shadow-lg z-10
+                            ${selectedTag === "VIP" ? "bg-yellow-500/90" : selectedTag === "Frequent" ? "bg-green-500/90" : "bg-blue-500/90"}`}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.3 }}
+                    >
+                        {selectedTag}
+                        <button 
+                            onClick={() => setSelectedTag("All")} 
+                            className="hover:text-red-300 transition-all"
+                        >
+                            <XMarkIcon className="w-4 h-4" />
+                        </button>
+                    </motion.div>
+                )}
             </div>
-
-            {showFilters && (
-                <motion.div 
-                    className="max-w-lg mx-auto mb-6 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-300 dark:border-gray-700"
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3 }}
-                >
-                    <div className="flex justify-between">
-                        <label className="font-medium text-gray-700 dark:text-gray-300">Filter by Category:</label>
-                        <select
-                            value={selectedTag}
-                            onChange={(e) => setSelectedTag(e.target.value as any)}
-                            className="border rounded-md px-3 py-1 dark:bg-gray-700 dark:text-white"
-                        >
-                            <option value="All">All</option>
-                            <option value="VIP">VIP</option>
-                            <option value="Frequent">Frequent</option>
-                            <option value="New">New</option>
-                        </select>
-                    </div>
-                    <div className="flex justify-between mt-3">
-                        <label className="font-medium text-gray-700 dark:text-gray-300">Sort by:</label>
-                        <select
-                            value={sortOption}
-                            onChange={(e) => setSortOption(e.target.value as any)}
-                            className="border rounded-md px-3 py-1 dark:bg-gray-700 dark:text-white"
-                        >
-                            <option value="Last Appointment">Last Appointment</option>
-                            <option value="Name">Name</option>
-                            <option value="Frequency">Frequency</option>
-                        </select>
-                    </div>
-                </motion.div>
-            )}
 
             {/* Client Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {sortedClients.map(client => (
-                    <ClientCard key={client.id} client={client} onClick={() => setSelectedClient(client)} toggleReminder={toggleReminder} />
+                {filteredClients.map(client => (
+                    <ClientCard 
+                        key={client.id} 
+                        client={client} 
+                        openBookingModal={openBookingModal}
+                        toggleReminder={toggleReminder}
+                        setSelectedTag={setSelectedTag}
+                    />
                 ))}
             </div>
 

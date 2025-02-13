@@ -20,6 +20,9 @@ export interface Preferences {
     massageType: string;
     pressureLevel: "Soft" | "Medium" | "Strong";
     oilAllergies?: string[];
+    roomTemperature?: string;
+    musicPreference?: string;
+    sessionDuration?: string;
 }
 
 export interface Client {
@@ -33,9 +36,11 @@ export interface Client {
     notes?: string;
     appointmentHistory: Appointment[];
     healthNotes?: string;
+    mobilityIssues?: string;
     preferences?: Preferences;
     remindersEnabled: boolean;
     staffNotes: string[];
+    previousMasseurNotes?: string[];
     messages: Message[];
     feedback: Feedback[];
 }

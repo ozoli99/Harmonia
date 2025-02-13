@@ -17,7 +17,7 @@ const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Appointments = lazy(() => import("./pages/Appointments"));
 const Profile = lazy(() => import("./pages/Profile"));
 const Calendar = lazy(() => import("./pages/Calendar"));
-const ClientManagement = lazy(() => import("./pages/ClientManagement"));
+const ClientManagement = lazy(() => import("./pages/ClientsPage"));
 const PaymentProcessingView = lazy(() => import("./pages/PaymentProcessingView"));
 const Messages = lazy(() => import("./pages/Messages"));
 const SessionManagement = lazy(() => import("./pages/SessionManagement"));

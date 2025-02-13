@@ -7,7 +7,7 @@ export const dummyClients: Client[] = [
         email: "clienta@example.com",
         lastAppointment: "2024-12-31 14:00",
         details: "Regular client, prefers Swedish Massage.",
-        avatar: "https://via.placeholder.com/50",
+        avatar: "https://randomuser.me/api/portraits/men/32.jpg",
         tag: "VIP",
         notes: "Enjoys strong pressure massage, allergic to lavender oil.",
         appointmentHistory: [
@@ -19,10 +19,22 @@ export const dummyClients: Client[] = [
             massageType: "Swedish Massage",
             pressureLevel: "Strong",
             oilAllergies: ["Lavender", "Eucalyptus"],
+            roomTemperature: "Warm (24°C)",
+            musicPreference: "Classical Piano",
+            sessionDuration: "90 minutes",
         },
         healthNotes: "Lower back pain, avoid excessive pressure in lumbar area.",
+        mobilityIssues: "Mild stiffness in the left shoulder",
         remindersEnabled: true,
-        staffNotes: ["Client prefers deep pressure on shoulders.", "Allergic to eucalyptus oil."],
+        staffNotes: [
+            "Client prefers deep pressure on shoulders.",
+            "Allergic to eucalyptus oil.",
+            "Prefers warm towels before starting the session."
+        ],
+        previousMasseurNotes: [
+            "Avoid too much pressure on the lower back.",
+            "Likes soft kneading technique on neck and shoulders."
+        ],
         messages: [
             { sender: "Staff", content: "Reminder: Your appointment is scheduled for Dec 1.", timestamp: "2024-11-30 10:00 AM" },
             { sender: "Client", content: "Thanks! I'll be there.", timestamp: "2024-11-30 10:15 AM" },
@@ -38,7 +50,7 @@ export const dummyClients: Client[] = [
         email: "clientb@example.com",
         lastAppointment: "2025-02-10 10:00",
         details: "First-time visitor, interested in Deep Tissue.",
-        avatar: "https://via.placeholder.com/50",
+        avatar: "https://randomuser.me/api/portraits/women/32.jpg",
         tag: "New",
         notes: "Mild back pain, recommended Deep Tissue.",
         appointmentHistory: [
@@ -47,7 +59,11 @@ export const dummyClients: Client[] = [
         preferences: {
             massageType: "Deep Tissue",
             pressureLevel: "Medium",
+            roomTemperature: "Cool (21°C)",
+            musicPreference: "Nature Sounds",
+            sessionDuration: "60 minutes",
         },
+        healthNotes: "No major concerns.",
         remindersEnabled: false,
         staffNotes: ["Prefers light pressure, enjoys aromatherapy."],
         messages: [],
@@ -59,7 +75,7 @@ export const dummyClients: Client[] = [
         email: "clientc@example.com",
         lastAppointment: "2023-06-15 17:00",
         details: "Used to be a frequent client but hasn't visited in a long time.",
-        avatar: "https://via.placeholder.com/50",
+        avatar: "https://randomuser.me/api/portraits/men/31.jpg",
         tag: "Frequent",
         notes: "Mild back pain, prefers firm pressure.",
         appointmentHistory: [
@@ -69,7 +85,11 @@ export const dummyClients: Client[] = [
         preferences: {
             massageType: "Sports Massage",
             pressureLevel: "Soft",
+            roomTemperature: "Neutral (22°C)",
+            musicPreference: "None",
+            sessionDuration: "45 minutes",
         },
+        healthNotes: "Recurring tightness in hamstrings.",
         remindersEnabled: false,
         staffNotes: ["Client used to come regularly but hasn't visited recently."],
         messages: [],
@@ -83,7 +103,7 @@ export const dummyClients: Client[] = [
         email: "clientd@example.com",
         lastAppointment: "2024-12-02 15:00",
         details: "Regular client, coming today.",
-        avatar: "https://via.placeholder.com/50",
+        avatar: "https://randomuser.me/api/portraits/women/33.jpg",
         tag: "VIP",
         notes: "Loves aromatherapy massages.",
         appointmentHistory: [
@@ -92,7 +112,11 @@ export const dummyClients: Client[] = [
         preferences: {
             massageType: "Aromatherapy",
             pressureLevel: "Soft",
+            roomTemperature: "Warm (25°C)",
+            musicPreference: "Spa Ambience",
+            sessionDuration: "60 minutes",
         },
+        healthNotes: "None.",
         remindersEnabled: true,
         staffNotes: ["Likes calming scents like lavender and chamomile."],
         messages: [],
@@ -106,7 +130,7 @@ export const dummyClients: Client[] = [
         email: "cliente@example.com",
         lastAppointment: "2024-08-15 09:30",
         details: "Has multiple upcoming appointments.",
-        avatar: "https://via.placeholder.com/50",
+        avatar: "https://randomuser.me/api/portraits/men/30.jpg",
         tag: "Frequent",
         notes: "Loves strong pressure and long sessions.",
         appointmentHistory: [
@@ -132,7 +156,7 @@ export const dummyClients: Client[] = [
         email: "clientf@example.com",
         lastAppointment: "2024-09-05 16:30",
         details: "Never left feedback.",
-        avatar: "https://via.placeholder.com/50",
+        avatar: "https://randomuser.me/api/portraits/women/34.jpg",
         tag: "New",
         notes: "Enjoys lighter pressure.",
         appointmentHistory: [
@@ -153,7 +177,7 @@ export const dummyClients: Client[] = [
         email: "clientg@example.com",
         lastAppointment: "2024-10-15 10:00",
         details: "Doesn't use reminders or messaging.",
-        avatar: "https://via.placeholder.com/50",
+        avatar: "https://randomuser.me/api/portraits/men/29.jpg",
         tag: "VIP",
         notes: "Prefers silent sessions, no small talk.",
         appointmentHistory: [
@@ -176,7 +200,7 @@ export const dummyClients: Client[] = [
         email: "clienth@example.com",
         lastAppointment: "2025-01-10 14:00",
         details: "Loves hot stone therapy.",
-        avatar: "https://via.placeholder.com/50",
+        avatar: "https://randomuser.me/api/portraits/women/35.jpg",
         tag: "VIP",
         notes: "Prefers a quiet, relaxing environment.",
         appointmentHistory: [
@@ -201,7 +225,7 @@ export const dummyClients: Client[] = [
         email: "clienti@example.com",
         lastAppointment: "2024-10-05 11:00",
         details: "Unhappy with previous service.",
-        avatar: "https://via.placeholder.com/50",
+        avatar: "https://randomuser.me/api/portraits/men/28.jpg",
         tag: "Frequent",
         notes: "Had a bad experience, needs a follow-up discussion.",
         appointmentHistory: [
@@ -226,7 +250,7 @@ export const dummyClients: Client[] = [
         email: "clientj@example.com",
         lastAppointment: "2019-08-20 16:00",
         details: "Used to be a regular but hasn't booked in years.",
-        avatar: "https://via.placeholder.com/50",
+        avatar: "https://randomuser.me/api/portraits/women/36.jpg",
         tag: "VIP",
         notes: "No recent activity, should be re-engaged.",
         appointmentHistory: [
@@ -248,7 +272,7 @@ export const dummyClients: Client[] = [
         email: "clientk@example.com",
         lastAppointment: "2025-02-10 09:00",
         details: "Currently in session.",
-        avatar: "https://via.placeholder.com/50",
+        avatar: "https://randomuser.me/api/portraits/men/27.jpg",
         tag: "Frequent",
         notes: "Enjoys strong Thai Massage.",
         appointmentHistory: [
@@ -269,7 +293,7 @@ export const dummyClients: Client[] = [
         email: "clientl@example.com",
         lastAppointment: "2025-01-10 14:00",
         details: "Loves trying different services.",
-        avatar: "https://via.placeholder.com/50",
+        avatar: "https://randomuser.me/api/portraits/women/37.jpg",
         tag: "Frequent",
         notes: "Schedules multiple appointments in a short period.",
         appointmentHistory: [
@@ -294,7 +318,7 @@ export const dummyClients: Client[] = [
         email: "clientm@example.com",
         lastAppointment: "2024-09-15 10:30",
         details: "Prefers no notifications.",
-        avatar: "https://via.placeholder.com/50",
+        avatar: "https://randomuser.me/api/portraits/men/26.jpg",
         tag: "New",
         notes: "Wants a massage, no extra engagement.",
         appointmentHistory: [
@@ -315,7 +339,7 @@ export const dummyClients: Client[] = [
         email: "clientn@example.com",
         lastAppointment: "2025-01-15 11:00",
         details: "Leaves detailed feedback.",
-        avatar: "https://via.placeholder.com/50",
+        avatar: "https://randomuser.me/api/portraits/women/38.jpg",
         tag: "Frequent",
         notes: "Loves detailed massages, always leaves feedback.",
         appointmentHistory: [
