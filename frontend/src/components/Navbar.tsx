@@ -41,18 +41,6 @@ const Navbar: React.FC = () => {
                     {isSignedIn && (
                         <>
                             <Link
-                                to="/appointments"
-                                className="relative text-gray-600 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400 transition-all"
-                            >
-                                Appointments
-                                <motion.span
-                                    className="absolute left-0 bottom-0 w-full h-0.5 bg-blue-500 dark:bg-blue-400 scale-x-0"
-                                    whileHover={{ scaleX: 1 }}
-                                    transition={{ duration: 0.3 }}
-                                />
-                            </Link>
-
-                            <Link
                                 to="/dashboard"
                                 className="relative text-gray-600 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400 transition-all"
                             >
@@ -65,10 +53,22 @@ const Navbar: React.FC = () => {
                             </Link>
 
                             <Link
-                                to="/settings"
+                                to="/appointments"
                                 className="relative text-gray-600 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400 transition-all"
                             >
-                                Settings
+                                Appointments
+                                <motion.span
+                                    className="absolute left-0 bottom-0 w-full h-0.5 bg-blue-500 dark:bg-blue-400 scale-x-0"
+                                    whileHover={{ scaleX: 1 }}
+                                    transition={{ duration: 0.3 }}
+                                />
+                            </Link>
+
+                            <Link
+                                to="/clients"
+                                className="relative text-gray-600 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400 transition-all"
+                            >
+                                Clients
                                 <motion.span
                                     className="absolute left-0 bottom-0 w-full h-0.5 bg-blue-500 dark:bg-blue-400 scale-x-0"
                                     whileHover={{ scaleX: 1 }}
@@ -100,13 +100,6 @@ const Navbar: React.FC = () => {
                         {isSignedIn && (
                             <>
                                 <Link
-                                    to="/appointments"
-                                    className="block text-gray-600 dark:text-gray-200 py-2 hover:text-blue-600 dark:hover:text-blue-400"
-                                    onClick={() => setIsMobileMenuOpen(false)}
-                                >
-                                    Appointments
-                                </Link>
-                                <Link
                                     to="/dashboard"
                                     className="block text-gray-600 dark:text-gray-200 py-2 hover:text-blue-600 dark:hover:text-blue-400"
                                     onClick={() => setIsMobileMenuOpen(false)}
@@ -114,11 +107,18 @@ const Navbar: React.FC = () => {
                                     Dashboard
                                 </Link>
                                 <Link
-                                    to="/settings"
+                                    to="/appointments"
                                     className="block text-gray-600 dark:text-gray-200 py-2 hover:text-blue-600 dark:hover:text-blue-400"
                                     onClick={() => setIsMobileMenuOpen(false)}
                                 >
-                                    Settings
+                                    Appointments
+                                </Link>
+                                <Link
+                                    to="/clients"
+                                    className="block text-gray-600 dark:text-gray-200 py-2 hover:text-blue-600 dark:hover:text-blue-400"
+                                    onClick={() => setIsMobileMenuOpen(false)}
+                                >
+                                    Clients
                                 </Link>
                                 <div className="border-t border-gray-300 dark:border-gray-700 my-3"></div>
                             </>

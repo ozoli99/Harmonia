@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import LoginButton from "./LoginButton";
 import LogoutButton from "./LogoutButton";
 import { FiLogOut } from "react-icons/fi";
-import { IoPersonCircleOutline } from "react-icons/io5";
+import { IoPersonCircleOutline, IoSettingsOutline } from "react-icons/io5";
 import { motion } from "framer-motion";
 
 const UserManagement: React.FC = () => {
@@ -63,6 +63,14 @@ const UserManagement: React.FC = () => {
                         >
                             <IoPersonCircleOutline className="mr-3 text-xl" />
                             View Profile
+                        </Link>
+                        <div className="border-t border-gray-200 dark:border-gray-700"></div>
+                        <Link 
+                            to="/profile" 
+                            className="flex items-center px-4 py-3 text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+                        >
+                            <IoSettingsOutline className="mr-3 text-xl" />
+                            Settings
                         </Link>
                         <div className="border-t border-gray-200 dark:border-gray-700"></div>
                         <button
