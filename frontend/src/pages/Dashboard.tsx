@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import dayjs from "dayjs";
 import { ResponsiveLine } from "@nivo/line";
@@ -12,6 +12,7 @@ import {
 import GlobalSearch from "../components/GlobalSearch";
 import NotificationsPanel from "../components/NotificationsPanel";
 import AppointmentCard from "../components/AppointmentCard";
+import AdminAppointmentCard from "../components/AdminAppointmentCard";
 import UpcomingAppointmentsWidget from "../components/UpcomingAppointmentsWidget";
 import QuickActions from "../components/QuickActions";
 import CalendarPreview from "../components/CalendarPreview";
@@ -21,9 +22,16 @@ import {
     UserIcon,
     ChartBarIcon,
     BellIcon,
-    PencilIcon,
     ChatBubbleLeftIcon,
+    PencilIcon,
+    XCircleIcon,
 } from "@heroicons/react/24/outline";
+import MessagesWidget from "../components/MessagesWidget";
+import OffersWidget from "../components/OffersWidget";
+import PastAppointmentsWidget from "../components/PastAppointmentsWidget";
+import ProfileWidget from "../components/ProfileWidget";
+import { Client } from "../types/client";
+import { useAuth, useSession, useUser } from "@clerk/clerk-react";
 
 type Stat = {
     id: string;
@@ -46,11 +54,13 @@ const getIconForStat = (id: string): React.JSX.Element => {
 };
 
 const Dashboard: React.FC = () => {
+    const { isSignedIn, user } = useUser();
+    const { session } = useSession();
+    const { signOut } = useAuth();
+
     const today = dayjs().format("dddd, MMMM D, YYYY");
 
-    const [userRole, setUserRole] = useState<"admin" | "masseur" | "client">(
-        "admin"
-    );
+    const userRole = (user?.publicMetadata?.role as string) || "client";
 
     const handleSearch = (query: string) => {
         console.log("Searching for:", query);
@@ -119,6 +129,107 @@ const Dashboard: React.FC = () => {
         }
     }, [userRole]);
 
+    const upcomingAppointments = [
+        {
+            id: 1,
+            provider: "Masseur A",
+            customer: "Client A",
+            formattedTime: "18:00",
+            status: "confirmed" as "confirmed" | "pending" | "cancelled",
+        },
+        {
+            id: 2,
+            provider: "Masseur B",
+            customer: "Client A",
+            formattedTime: "20:00",
+            status: "confirmed" as "confirmed" | "pending" | "cancelled",
+        },
+    ];
+
+    const pastAppointments = [
+        {
+            id: 3,
+            provider: "Masseur C",
+            customer: "Client A",
+            formattedTime: "12:00",
+            status: "confirmed" as "confirmed" | "pending" | "cancelled",
+        },
+        {
+            id: 4,
+            provider: "Masseur A",
+            customer: "Client A",
+            formattedTime: "10:00",
+            status: "cancelled" as "confirmed" | "pending" | "cancelled",
+        },
+    ];
+
+    const messages = [
+        {
+            id: 1,
+            sender: "Masseur A",
+            content: "Your appointment is confirmed.",
+            timestamp: "2023-09-01 14:00",
+        },
+        {
+            id: 2,
+            sender: "Support",
+            content: "Your payment was successful.",
+            timestamp: "2023-09-02 09:00",
+        },
+        {
+            id: 3,
+            sender: "Masseur B",
+            content: "Your appointment is cancelled.",
+            timestamp: "2023-08-01 14:00",
+        },
+        {
+            id: 4,
+            sender: "Support",
+            content: "Your payment was successful.",
+            timestamp: "2023-08-02 09:00",
+        },
+    ];
+
+    const profile: Client = {
+        id: 1,
+        name: user?.firstName || "User",
+        email: user?.primaryEmailAddress?.emailAddress || "No email",
+        avatar: user?.imageUrl || "https://via.placeholder.com/50",
+        lastAppointment: "2023-09-05",
+        details: "Some details about the client.",
+        tag: "VIP",
+        notes: "",
+        appointmentHistory: [],
+        healthNotes: "",
+        mobilityIssues: "",
+        preferences: {
+            massageType: "Swedish",
+            pressureLevel: "Medium",
+            oilAllergies: ["None"],
+            roomTemperature: "22°C",
+            musicPreference: "Jazz",
+            sessionDuration: "60 minutes",
+        },
+        remindersEnabled: true,
+        staffNotes: [],
+        previousMasseurNotes: [],
+        messages: [],
+        feedback: [],
+    };
+
+    const offers = [
+        {
+            id: 1,
+            title: "Loyalty Discount",
+            description: "10% off your next appointment.",
+        },
+        {
+            id: 2,
+            title: "Seasonal Special",
+            description: "Book now and get a free upgrade.",
+        },
+    ];
+
     const [appointments, setAppointments] = useState([
         {
             id: 1,
@@ -136,6 +247,48 @@ const Dashboard: React.FC = () => {
         },
         {
             id: 3,
+            provider: "Masseur C",
+            customer: "Client C",
+            formattedTime: "17:00",
+            status: "cancelled" as "confirmed" | "pending" | "cancelled",
+        },
+        {
+            id: 4,
+            provider: "Masseur A",
+            customer: "Client A",
+            formattedTime: "14:00",
+            status: "confirmed" as "confirmed" | "pending" | "cancelled",
+        },
+        {
+            id: 5,
+            provider: "Masseur B",
+            customer: "Client B",
+            formattedTime: "15:30",
+            status: "pending" as "confirmed" | "pending" | "cancelled",
+        },
+        {
+            id: 6,
+            provider: "Masseur C",
+            customer: "Client C",
+            formattedTime: "17:00",
+            status: "cancelled" as "confirmed" | "pending" | "cancelled",
+        },
+        {
+            id: 7,
+            provider: "Masseur A",
+            customer: "Client A",
+            formattedTime: "14:00",
+            status: "confirmed" as "confirmed" | "pending" | "cancelled",
+        },
+        {
+            id: 8,
+            provider: "Masseur B",
+            customer: "Client B",
+            formattedTime: "15:30",
+            status: "pending" as "confirmed" | "pending" | "cancelled",
+        },
+        {
+            id: 9,
             provider: "Masseur C",
             customer: "Client C",
             formattedTime: "17:00",
@@ -196,7 +349,7 @@ const Dashboard: React.FC = () => {
             <header className="flex flex-col md:flex-row items-center justify-between gap-6">
                 <div>
                     <h2 className="text-4xl font-bold text-gray-900 dark:text-white">
-                        Welcome back, Alex! 👋
+                        Welcome back, {profile.name}! 👋
                     </h2>
                     <p className="text-gray-600 dark:text-gray-400">{today}</p>
                 </div>
@@ -218,15 +371,42 @@ const Dashboard: React.FC = () => {
                 />
             )}
 
-            {/* Overview Widgets: General Dashboard Components */}
-            <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <UpcomingAppointmentsWidget appointments={appointments} />
-                <QuickActions />
-            </section>
+            {userRole !== "admin" && (
+                <>
+                    <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <ProfileWidget
+                            client={profile}
+                            onEdit={() => console.log("Edit profile")}
+                        />
+                        <MessagesWidget
+                            messages={messages}
+                            onViewAll={() => console.log("View all messages")}
+                        />
+                    </section>
+                    <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <UpcomingAppointmentsWidget
+                            appointments={upcomingAppointments}
+                            onViewAll={() =>
+                                console.log("View all upcoming appoitments")
+                            }
+                        />
+                        <PastAppointmentsWidget
+                            appointments={pastAppointments}
+                            onViewDetails={(id) =>
+                                console.log("View details for appointment", id)
+                            }
+                        />
+                    </section>
+                    <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <CalendarPreview appointments={appointments} />
+                    </section>
+                </>
+            )}
 
-            <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <CalendarPreview appointments={appointments} />
-            </section>
+            <OffersWidget
+                offers={offers}
+                onViewAll={() => console.log("View all offers")}
+            />
 
             {/* Role-Specific Content */}
             {userRole === "masseur" && (
@@ -244,27 +424,112 @@ const Dashboard: React.FC = () => {
                 </section>
             )}
 
-            {userRole === "client" && (
-                <section className="space-y-4">
-                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
-                        Your Appointments
-                    </h3>
-                    {appointments.map((appt) => (
-                        <AppointmentCard
-                            key={appt.id}
-                            appointment={appt}
-                            onUpdate={handleAppointmentUpdate}
-                        />
-                    ))}
-                </section>
-            )}
-
             {userRole === "admin" && (
-                <section className="space-y-4">
+                <section className="space-y-8">
                     <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
-                        System Overview
+                        System Analytics &amp; KPIs
                     </h3>
-                    {/* Additional admin-specific panels can be added here */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div className="bg-white dark:bg-gray-900/90 backdrop-blur-xl rounded-xl shadow-lg p-6">
+                            <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
+                                Total Clients
+                            </h4>
+                            <p className="text-2xl font-bold text-blue-500">
+                                120
+                            </p>
+                        </div>
+                        <div className="bg-white dark:bg-gray-900/90 backdrop-blur-xl rounded-xl shadow-lg p-6">
+                            <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
+                                Total Masseurs
+                            </h4>
+                            <p className="text-2xl font-bold text-green-500">
+                                15
+                            </p>
+                        </div>
+                        <div className="bg-white dark:bg-gray-900/90 backdrop-blur-xl rounded-xl shadow-lg p-6">
+                            <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
+                                Appointments This Week
+                            </h4>
+                            <p className="text-2xl font-bold text-purple-500">
+                                45
+                            </p>
+                        </div>
+                    </div>
+
+                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+                        Global Appointment Overview
+                    </h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {appointments.map((appt) => (
+                            <AdminAppointmentCard
+                                key={appt.id}
+                                appointment={appt}
+                                onUpdate={handleAppointmentUpdate}
+                            />
+                        ))}
+                    </div>
+
+                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+                        User &amp; Client Management
+                    </h3>
+                    <div className="flex flex-wrap gap-4 bg-white dark:bg-gray-900/90 backdrop-blur-xl rounded-xl shadow-lg p-6">
+                        <motion.button
+                            className="bg-blue-500 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow hover:bg-blue-600"
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => console.log("Manage Users")}>
+                            Manage Users
+                        </motion.button>
+                        <motion.button
+                            className="bg-green-500 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow hover:bg-green-600"
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => console.log("Manage Clients")}>
+                            Manage Clients
+                        </motion.button>
+                        <motion.button
+                            className="bg-purple-500 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow hover:bg-purple-600"
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => console.log("Assign Appointments")}>
+                            Assign Appointments
+                        </motion.button>
+                    </div>
+
+                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+                        Support &amp; System Health
+                    </h3>
+                    <div className="bg-white dark:bg-gray-900/90 backdrop-blur-xl rounded-xl shadow-lg p-6">
+                        <p className="text-gray-700 dark:text-gray-300">
+                            All systems operational. No critical alerts.
+                        </p>
+                        <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                            Support tickets: 0 unresolved.
+                        </p>
+                    </div>
+
+                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+                        Role Management &amp; Settings
+                    </h3>
+                    <div className="flex flex-wrap gap-4 bg-white dark:bg-gray-900/90 backdrop-blur-xl rounded-xl shadow-lg p-6">
+                        <motion.button
+                            className="bg-indigo-500 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow hover:bg-indigo-600"
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() =>
+                                console.log("Configure Permissions")
+                            }>
+                            Configure Permissions
+                        </motion.button>
+                        <motion.button
+                            className="bg-yellow-500 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow hover:bg-yellow-600"
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => console.log("Service Settings")}>
+                            Service Settings
+                        </motion.button>
+                        <motion.button
+                            className="bg-gray-500 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow hover:bg-gray-600"
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => console.log("System Settings")}>
+                            System Settings
+                        </motion.button>
+                    </div>
                 </section>
             )}
 
@@ -279,8 +544,13 @@ const Dashboard: React.FC = () => {
                         {stats.map((item) => (
                             <SortableItem key={item.id} id={item.id}>
                                 <motion.div
-                                    className="relative bg-white/80 dark:bg-gray-900/90 backdrop-blur-xl rounded-xl shadow-lg p-6 flex items-center gap-4 transition-all hover:shadow-2xl hover:-translate-y-1"
-                                    whileHover={{ scale: 1.03 }}>
+                                    className="relative bg-white/70 dark:bg-gray-900/80 backdrop-blur-xl rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-6"
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{
+                                        duration: 0.3,
+                                        ease: "easeOut",
+                                    }}>
                                     {item.icon}
                                     <div>
                                         <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
@@ -298,7 +568,11 @@ const Dashboard: React.FC = () => {
             </DndContext>
 
             {/* Revenue Trend Section */}
-            <section className="bg-white dark:bg-gray-900 rounded-xl shadow-md p-6">
+            <motion.div
+                className="relative bg-white/70 dark:bg-gray-900/80 backdrop-blur-xl rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-6"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, ease: "easeOut" }}>
                 <div className="flex justify-between items-center mb-4">
                     <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
                         Revenue Trend
@@ -334,7 +608,7 @@ const Dashboard: React.FC = () => {
                         useMesh={true}
                     />
                 </div>
-            </section>
+            </motion.div>
         </div>
     );
 };

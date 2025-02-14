@@ -1,5 +1,6 @@
 import React from "react";
 import dayjs from "dayjs";
+import { motion } from "framer-motion";
 
 const CalendarPreview: React.FC<{ appointments: any[] }> = ({
     appointments,
@@ -17,7 +18,11 @@ const CalendarPreview: React.FC<{ appointments: any[] }> = ({
         );
 
     return (
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-4">
+        <motion.div
+            className="relative bg-white/70 dark:bg-gray-900/80 backdrop-blur-xl rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-6"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}>
             <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                 Calendar Preview
             </h4>
@@ -35,7 +40,7 @@ const CalendarPreview: React.FC<{ appointments: any[] }> = ({
                     </div>
                 ))}
             </div>
-        </div>
+        </motion.div>
     );
 };
 
