@@ -1,7 +1,16 @@
 export interface Appointment {
+    id: number;
+    provider: string;
+    customer: string;
     date: string;
+    startTime: string;
+    endTime: string;
     type: string;
-    status?: "Upcoming" | "Completed";
+    status?: "Upcoming" | "Completed" | "Cancelled";
+    description?: string;
+    location?: string;
+    createdAt: string;
+    updatedAt: string;
 }
 
 export interface Message {

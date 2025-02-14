@@ -14,7 +14,6 @@ import NotificationsPanel from "../components/NotificationsPanel";
 import AppointmentCard from "../components/AppointmentCard";
 import AdminAppointmentCard from "../components/AdminAppointmentCard";
 import UpcomingAppointmentsWidget from "../components/UpcomingAppointmentsWidget";
-import QuickActions from "../components/QuickActions";
 import CalendarPreview from "../components/CalendarPreview";
 import SortableItem from "../components/SortableItem";
 import {
@@ -22,9 +21,6 @@ import {
     UserIcon,
     ChartBarIcon,
     BellIcon,
-    ChatBubbleLeftIcon,
-    PencilIcon,
-    XCircleIcon,
 } from "@heroicons/react/24/outline";
 import MessagesWidget from "../components/MessagesWidget";
 import OffersWidget from "../components/OffersWidget";
@@ -32,6 +28,7 @@ import PastAppointmentsWidget from "../components/PastAppointmentsWidget";
 import ProfileWidget from "../components/ProfileWidget";
 import { Client } from "../types/client";
 import { useAuth, useSession, useUser } from "@clerk/clerk-react";
+import { fetchAppointments } from "../utils/api";
 
 type Stat = {
     id: string;
@@ -56,20 +53,102 @@ const getIconForStat = (id: string): React.JSX.Element => {
 const Dashboard: React.FC = () => {
     const { isSignedIn, user } = useUser();
     const { session } = useSession();
-    const { signOut } = useAuth();
+    const { signOut, getToken } = useAuth();
 
-    const today = dayjs().format("dddd, MMMM D, YYYY");
-
-    const userRole = (user?.publicMetadata?.role as string) || "client";
-
-    const handleSearch = (query: string) => {
-        console.log("Searching for:", query);
-    };
+    const [appointments, setAppointments] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string>("");
 
     const [showNotifications, setShowNotifications] = useState(false);
     const [revenueFilter, setRevenueFilter] = useState<
         "weekly" | "monthly" | "yearly"
     >("monthly");
+
+    const [stats, setStats] = useState<Stat[]>([
+        {
+            id: "appointments",
+            icon: <CalendarIcon className="w-10 h-10 text-blue-500" />,
+            title: "Upcoming Appointments",
+            value: "5 upcoming",
+        },
+        {
+            id: "revenue",
+            icon: <ChartBarIcon className="w-10 h-10 text-green-500" />,
+            title: "Revenue",
+            value: "$3,200 this month",
+        },
+        {
+            id: "clients",
+            icon: <UserIcon className="w-10 h-10 text-purple-500" />,
+            title: "Client Retention",
+            value: "87% repeat clients",
+        },
+    ]);
+
+    useEffect(() => {
+        const loadAppointments = async () => {
+            try {
+                const token = await getToken();
+                const data = await fetchAppointments(token);
+                setAppointments(data);
+            } catch (err: any) {
+                setError(err.message);
+            } finally {
+                setLoading(false);
+            }
+        };
+        loadAppointments();
+    }, [getToken]);
+
+    const userRole = (user?.publicMetadata?.role as string) || "client";
+
+    useEffect(() => {
+        if (userRole === "admin") {
+            setStats((prev) => [
+                ...prev,
+                {
+                    id: "users",
+                    icon: <UserIcon className="w-10 h-10 text-indigo-500" />,
+                    title: "Total Users",
+                    value: "150 registered",
+                },
+            ]);
+        }
+    }, [userRole]);
+
+    useEffect(() => {
+        const serializableStats = stats.map(({ id, title, value }) => ({
+            id,
+            title,
+            value,
+        }));
+        localStorage.setItem(
+            "dashboard_stats_order",
+            JSON.stringify(serializableStats)
+        );
+    }, [stats]);
+
+    useEffect(() => {
+        const savedOrder = localStorage.getItem("dashboard_stats_order");
+        if (savedOrder) {
+            const parsedStats: Omit<Stat, "icon">[] = JSON.parse(savedOrder);
+            setStats(
+                parsedStats.map((stat) => ({
+                    ...stat,
+                    icon: getIconForStat(stat.id),
+                }))
+            );
+        }
+    }, []);
+
+    if (loading) return <div>Loading...</div>;
+    if (error) return <div>Error: {error}</div>;
+
+    const today = dayjs().format("dddd, MMMM D, YYYY");
+
+    const handleSearch = (query: string) => {
+        console.log("Searching for:", query);
+    };
 
     const revenueData = {
         weekly: [
@@ -94,74 +173,13 @@ const Dashboard: React.FC = () => {
         ],
     };
 
-    const [stats, setStats] = useState<Stat[]>([
-        {
-            id: "appointments",
-            icon: <CalendarIcon className="w-10 h-10 text-blue-500" />,
-            title: "Upcoming Appointments",
-            value: "5 upcoming",
-        },
-        {
-            id: "revenue",
-            icon: <ChartBarIcon className="w-10 h-10 text-green-500" />,
-            title: "Revenue",
-            value: "$3,200 this month",
-        },
-        {
-            id: "clients",
-            icon: <UserIcon className="w-10 h-10 text-purple-500" />,
-            title: "Client Retention",
-            value: "87% repeat clients",
-        },
-    ]);
+    const upcomingAppointments = appointments.filter((appointment) => {
+        return true;
+    });
 
-    useEffect(() => {
-        if (userRole === "admin") {
-            setStats((prev) => [
-                ...prev,
-                {
-                    id: "users",
-                    icon: <UserIcon className="w-10 h-10 text-indigo-500" />,
-                    title: "Total Users",
-                    value: "150 registered",
-                },
-            ]);
-        }
-    }, [userRole]);
-
-    const upcomingAppointments = [
-        {
-            id: 1,
-            provider: "Masseur A",
-            customer: "Client A",
-            formattedTime: "18:00",
-            status: "confirmed" as "confirmed" | "pending" | "cancelled",
-        },
-        {
-            id: 2,
-            provider: "Masseur B",
-            customer: "Client A",
-            formattedTime: "20:00",
-            status: "confirmed" as "confirmed" | "pending" | "cancelled",
-        },
-    ];
-
-    const pastAppointments = [
-        {
-            id: 3,
-            provider: "Masseur C",
-            customer: "Client A",
-            formattedTime: "12:00",
-            status: "confirmed" as "confirmed" | "pending" | "cancelled",
-        },
-        {
-            id: 4,
-            provider: "Masseur A",
-            customer: "Client A",
-            formattedTime: "10:00",
-            status: "cancelled" as "confirmed" | "pending" | "cancelled",
-        },
-    ];
+    const pastAppointments = appointments.filter((appointment) => {
+        return false;
+    });
 
     const messages = [
         {
@@ -229,97 +247,6 @@ const Dashboard: React.FC = () => {
             description: "Book now and get a free upgrade.",
         },
     ];
-
-    const [appointments, setAppointments] = useState([
-        {
-            id: 1,
-            provider: "Masseur A",
-            customer: "Client A",
-            formattedTime: "14:00",
-            status: "confirmed" as "confirmed" | "pending" | "cancelled",
-        },
-        {
-            id: 2,
-            provider: "Masseur B",
-            customer: "Client B",
-            formattedTime: "15:30",
-            status: "pending" as "confirmed" | "pending" | "cancelled",
-        },
-        {
-            id: 3,
-            provider: "Masseur C",
-            customer: "Client C",
-            formattedTime: "17:00",
-            status: "cancelled" as "confirmed" | "pending" | "cancelled",
-        },
-        {
-            id: 4,
-            provider: "Masseur A",
-            customer: "Client A",
-            formattedTime: "14:00",
-            status: "confirmed" as "confirmed" | "pending" | "cancelled",
-        },
-        {
-            id: 5,
-            provider: "Masseur B",
-            customer: "Client B",
-            formattedTime: "15:30",
-            status: "pending" as "confirmed" | "pending" | "cancelled",
-        },
-        {
-            id: 6,
-            provider: "Masseur C",
-            customer: "Client C",
-            formattedTime: "17:00",
-            status: "cancelled" as "confirmed" | "pending" | "cancelled",
-        },
-        {
-            id: 7,
-            provider: "Masseur A",
-            customer: "Client A",
-            formattedTime: "14:00",
-            status: "confirmed" as "confirmed" | "pending" | "cancelled",
-        },
-        {
-            id: 8,
-            provider: "Masseur B",
-            customer: "Client B",
-            formattedTime: "15:30",
-            status: "pending" as "confirmed" | "pending" | "cancelled",
-        },
-        {
-            id: 9,
-            provider: "Masseur C",
-            customer: "Client C",
-            formattedTime: "17:00",
-            status: "cancelled" as "confirmed" | "pending" | "cancelled",
-        },
-    ]);
-
-    useEffect(() => {
-        const serializableStats = stats.map(({ id, title, value }) => ({
-            id,
-            title,
-            value,
-        }));
-        localStorage.setItem(
-            "dashboard_stats_order",
-            JSON.stringify(serializableStats)
-        );
-    }, [stats]);
-
-    useEffect(() => {
-        const savedOrder = localStorage.getItem("dashboard_stats_order");
-        if (savedOrder) {
-            const parsedStats: Omit<Stat, "icon">[] = JSON.parse(savedOrder);
-            setStats(
-                parsedStats.map((stat) => ({
-                    ...stat,
-                    icon: getIconForStat(stat.id),
-                }))
-            );
-        }
-    }, []);
 
     const handleDragEnd = (event: any) => {
         const { active, over } = event;

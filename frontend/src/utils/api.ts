@@ -1,19 +1,17 @@
-import axios from "axios";
+const API_URL = process.env.REACT_APP_API_URL || "http://localhost:3000";
 
-const api = axios.create({
-    baseURL: process.env.REACT_APP_API_URL || "http://localhost:8080",
-});
-
-api.interceptors.request.use(
-    async (config) => {
-        const token = localStorage.getItem("access_token");
-        if (token && config.headers) {
-            config.headers.Authorization = `Bearer ${token}`;
-        }
-        return config;
-    }, (error) => {
-        return Promise.reject(error);
+export const fetchAppointments = async (
+    token: string | null
+): Promise<any[]> => {
+    const authToken = token || undefined;
+    const response = await fetch(`${API_URL}/api/appointments`, {
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: authToken ? `Bearer ${authToken}` : "",
+        },
+    });
+    if (!response.ok) {
+        throw new Error("Failed to fetch appointments");
     }
-);
-
-export default api;
+    return response.json();
+};

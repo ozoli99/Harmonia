@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import { Tooltip } from "react-tooltip";
 import { useClients } from "../hooks/useClients";
 import useDebounce from "../hooks/useDebounce";
+import { useAuth } from "@clerk/clerk-react";
 
 const ClientsPage: React.FC = () => {
     const {
@@ -28,8 +29,11 @@ const ClientsPage: React.FC = () => {
         addStaffNote,
         sendMessage,
         submitFeedback,
-        sortedClients
+        sortedClients,
     } = useClients();
+
+    const { getToken } = useAuth();
+    const [clients, setClients] = useState(null);
 
     const [inputValue, setInputValue] = useState(searchTerm);
     const debouncedInputValue = useDebounce(inputValue, 300);
@@ -38,19 +42,41 @@ const ClientsPage: React.FC = () => {
         setSearchTerm(debouncedInputValue);
     }, [debouncedInputValue, setSearchTerm]);
 
-    const filteredClients = selectedTag === "All"
-        ? sortedClients
-        : sortedClients.filter(client => client.tag === selectedTag);
+    const filteredClients =
+        selectedTag === "All"
+            ? sortedClients
+            : sortedClients.filter((client) => client.tag === selectedTag);
 
     const openBookingModal = (client: any) => {
         setSelectedClient(client);
         setShowBookingModal(true);
     };
-    
+
+    useEffect(() => {
+        const fetchClients = async () => {
+            const token = await getToken();
+            const response = await fetch("http://localhost:3000/clients", {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            const data = await response.json();
+            setClients(data);
+        };
+
+        fetchClients();
+    }, []);
+
     return (
         <div className="p-8 py-20 min-h-screen bg-gray-50 dark:bg-gray-900 transition-all">
             <h2 className="text-4xl font-extrabold text-gray-900 dark:text-white mb-6 tracking-tight">
                 🏆 Clients
+                {clients ? (
+                    <pre>{JSON.stringify(clients, null, 2)}</pre>
+                ) : (
+                    <p>Loading...</p>
+                )}
             </h2>
 
             {/* Search Bar & Tag Filter Display */}
@@ -71,26 +97,29 @@ const ClientsPage: React.FC = () => {
                                 setSearchTerm("");
                             }}
                             aria-label="Clear search"
-                            className="absolute right-3 top-3 text-gray-500 dark:text-gray-400 hover:text-red-500 transition-colors"
-                        >
+                            className="absolute right-3 top-3 text-gray-500 dark:text-gray-400 hover:text-red-500 transition-colors">
                             <XMarkIcon className="w-5 h-5" />
                         </button>
                     )}
                 </div>
 
                 {selectedTag !== "All" && (
-                    <motion.div 
+                    <motion.div
                         className={`flex items-center gap-2 top-1 left-1 text-xs px-3 py-1 rounded-full text-white shadow-lg z-10
-                            ${selectedTag === "VIP" ? "bg-yellow-500/90" : selectedTag === "Frequent" ? "bg-green-500/90" : "bg-blue-500/90"}`}
+                            ${
+                                selectedTag === "VIP"
+                                    ? "bg-yellow-500/90"
+                                    : selectedTag === "Frequent"
+                                    ? "bg-green-500/90"
+                                    : "bg-blue-500/90"
+                            }`}
                         initial={{ opacity: 0, x: -10 }}
                         animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.3 }}
-                    >
+                        transition={{ duration: 0.3 }}>
                         {selectedTag}
-                        <button 
-                            onClick={() => setSelectedTag("All")} 
-                            className="hover:text-red-300 transition-all"
-                        >
+                        <button
+                            onClick={() => setSelectedTag("All")}
+                            className="hover:text-red-300 transition-all">
                             <XMarkIcon className="w-4 h-4" />
                         </button>
                     </motion.div>
@@ -99,10 +128,10 @@ const ClientsPage: React.FC = () => {
 
             {/* Client Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {filteredClients.map(client => (
-                    <ClientCard 
-                        key={client.id} 
-                        client={client} 
+                {filteredClients.map((client) => (
+                    <ClientCard
+                        key={client.id}
+                        client={client}
                         openBookingModal={openBookingModal}
                         toggleReminder={toggleReminder}
                         setSelectedTag={setSelectedTag}
@@ -111,27 +140,42 @@ const ClientsPage: React.FC = () => {
             </div>
 
             {/* Client Details Modal */}
-            {selectedClient && (
-                <ClientDetailsModal />
-            )}
+            {selectedClient && <ClientDetailsModal />}
 
             {showBookingModal && (
                 <Modal isOpen={true} onClose={() => setShowBookingModal(false)}>
                     <div className="p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md max-w-md mx-auto">
-                        <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Schedule Appointment</h3>
-                        <p className="text-gray-500 dark:text-gray-400">Client: {selectedClient?.name}</p>
-                        <p className="text-gray-500 dark:text-gray-400">Email: {selectedClient?.email}</p>
+                        <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                            Schedule Appointment
+                        </h3>
+                        <p className="text-gray-500 dark:text-gray-400">
+                            Client: {selectedClient?.name}
+                        </p>
+                        <p className="text-gray-500 dark:text-gray-400">
+                            Email: {selectedClient?.email}
+                        </p>
                         {/* More fields for date, time, and service selection */}
                     </div>
                 </Modal>
             )}
 
             {showRecurringModal && (
-                <Modal isOpen={true} onClose={() => setShowRecurringModal(false)}>
+                <Modal
+                    isOpen={true}
+                    onClose={() => setShowRecurringModal(false)}>
                     <div className="p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md max-w-md mx-auto">
-                        <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Manage Recurring Appointments</h3>
-                        <p className="text-gray-500 dark:text-gray-400">Client: {selectedClient?.name}</p>
-                        <p className="text-gray-500 dark:text-gray-400">Next Appointment: {selectedClient?.appointmentHistory.find(a => a.status === "Upcoming")?.date || "None"}</p>
+                        <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                            Manage Recurring Appointments
+                        </h3>
+                        <p className="text-gray-500 dark:text-gray-400">
+                            Client: {selectedClient?.name}
+                        </p>
+                        <p className="text-gray-500 dark:text-gray-400">
+                            Next Appointment:{" "}
+                            {selectedClient?.appointmentHistory.find(
+                                (a) => a.status === "Upcoming"
+                            )?.date || "None"}
+                        </p>
                         {/* Add options to reschedule, cancel, or update */}
                     </div>
                 </Modal>
