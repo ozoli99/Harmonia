@@ -90,7 +90,7 @@ const Dashboard: React.FC = () => {
             try {
                 const token = await getToken();
                 const data = await fetchAppointments(token);
-                setAppointments(data);
+                setAppointments(data || []);
             } catch (err: any) {
                 setError(err.message);
             } finally {
@@ -173,11 +173,11 @@ const Dashboard: React.FC = () => {
         ],
     };
 
-    const upcomingAppointments = appointments.filter((appointment) => {
+    const upcomingAppointments = (appointments || []).filter((appointment) => {
         return true;
     });
 
-    const pastAppointments = appointments.filter((appointment) => {
+    const pastAppointments = (appointments || []).filter((appointment) => {
         return false;
     });
 

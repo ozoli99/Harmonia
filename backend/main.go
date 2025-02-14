@@ -1,10 +1,13 @@
 package main
 
 import (
+	"database/sql"
+	"log"
 	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	_ "github.com/lib/pq"
 )
 
 type Appointment struct {
@@ -22,9 +25,25 @@ type Appointment struct {
 	UpdatedAt   time.Time `db:"updated_at" json:"updatedAt"`
 }
 
-func main() {
-	router := gin.Default()
+var db *sql.DB
 
+func initDB() {
+	connStr := "user=postgres password=COMPUTERScience99@ dbname=harmonia sslmode=disable"
+	var err error
+	db, err = sql.Open("postgres", connStr)
+	if err != nil {
+		log.Fatalf("Error opening database: %v", err)
+	}
+	if err = db.Ping(); err != nil {
+		log.Fatalf("Error connecting to database: %v", err)
+	}
+	log.Println("Connected to harmonia database successfully.")
+}
+
+func main() {
+	initDB()
+
+	router := gin.Default()
 	router.Use(CORSMiddleware())
 
 	router.GET("/api/appointments", getAppointments)
@@ -32,14 +51,58 @@ func main() {
 	router.Run(":3000")
 }
 
-func getAppointments(context *gin.Context) {
-	appointments := []gin.H{
-		{"id": 1, "provider": "Masseur A", "customer": "Client A", "formattedTime": "14:00", "status": "confirmed"},
-		{"id": 2, "provider": "Masseur B", "customer": "Client B", "formattedTime": "15:30", "status": "pending"},
-		{"id": 3, "provider": "Masseur A", "customer": "Client A", "formattedTime": "15:00", "status": "confirmed"},
-		{"id": 4, "provider": "Masseur A", "customer": "Client A", "formattedTime": "16:00", "status": "confirmed"},
+func getAppointments(c *gin.Context) {
+	rows, err := db.Query(`
+		SELECT id, client_id, masseur_id, appointment_date, start_time, end_time, type, status, description, location, recurrence_rule, created_at, updated_at 
+		FROM appointments
+	`)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
-	context.JSON(http.StatusOK, appointments)
+	defer rows.Close()
+
+	var appointments []struct {
+		ID             int
+		ClientID       int
+		MasseurID      int
+		AppointmentDate string
+		StartTime      string
+		EndTime        string
+		Type           string
+		Status         string
+		Description    string
+		Location       string
+		RecurrenceRule string
+		CreatedAt      string
+		UpdatedAt      string
+	}
+
+	for rows.Next() {
+		var appt struct {
+			ID             int
+			ClientID       int
+			MasseurID      int
+			AppointmentDate string
+			StartTime      string
+			EndTime        string
+			Type           string
+			Status         string
+			Description    string
+			Location       string
+			RecurrenceRule string
+			CreatedAt      string
+			UpdatedAt      string
+		}
+		err := rows.Scan(&appt.ID, &appt.ClientID, &appt.MasseurID, &appt.AppointmentDate, &appt.StartTime, &appt.EndTime, &appt.Type, &appt.Status, &appt.Description, &appt.Location, &appt.RecurrenceRule, &appt.CreatedAt, &appt.UpdatedAt)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		appointments = append(appointments, appt)
+	}
+
+	c.JSON(http.StatusOK, appointments)
 }
 
 func CORSMiddleware() gin.HandlerFunc {

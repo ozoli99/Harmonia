@@ -19,7 +19,7 @@ const UpcomingAppointmentsWidget: React.FC<UpcomingAppointmentsWidgetProps> = ({
     appointments,
     onViewAll,
 }) => {
-    const upcoming = appointments
+    const upcoming = (appointments || [])
         .filter((appointment) => appointment.status === "confirmed")
         .slice(0, 2);
 

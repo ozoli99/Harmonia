@@ -28,7 +28,7 @@ const PastAppointmentsWidget: React.FC<PastAppointmentsWidgetProps> = ({
             <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
                 Past Appointments &amp; History
             </h3>
-            {appointments.length > 0 ? (
+            {(appointments || []).length > 0 ? (
                 appointments.map((appt) => (
                     <div
                         key={appt.id}

@@ -13,7 +13,7 @@ const CalendarPreview: React.FC<{ appointments: any[] }> = ({
     );
 
     const hasAppointment = (day: dayjs.Dayjs) =>
-        appointments.some((appt) =>
+        appointments?.some((appt) =>
             dayjs(appt.formattedTime, "HH:mm").isValid()
         );
 
