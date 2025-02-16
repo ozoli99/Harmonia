@@ -8,7 +8,7 @@ require (
 	github.com/go-playground/validator/v10 v10.20.0
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/lib/pq v1.10.9
-	github.com/stripe/stripe-go/v76 v76.25.0
+	github.com/stripe/stripe-go/v81 v81.3.1
 	go.uber.org/zap v1.27.0
 	gopkg.in/yaml.v3 v3.0.1
 )

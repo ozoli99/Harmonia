@@ -19,10 +19,12 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
-	"github.com/stripe/stripe-go/v76"
-	"github.com/stripe/stripe-go/v76/checkout/session"
-	"github.com/stripe/stripe-go/v76/paymentintent"
-	"github.com/stripe/stripe-go/v76/webhook"
+	"github.com/stripe/stripe-go/v81"
+	"github.com/stripe/stripe-go/v81/account"
+	"github.com/stripe/stripe-go/v81/accountlink"
+	"github.com/stripe/stripe-go/v81/checkout/session"
+	"github.com/stripe/stripe-go/v81/paymentintent"
+	"github.com/stripe/stripe-go/v81/webhook"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
 )
@@ -229,6 +231,11 @@ func handleSubscriptionSuccess(session stripe.CheckoutSession) {
 	userID := session.Metadata["user_id"]
 	subID := session.Subscription.ID
 
+	if session.PaymentStatus != "paid" {
+		fmt.Printf("Subscription payment not completed for user %s\n", userID)
+		return
+	}
+
 	_, err := db.Exec(`
 		UPDATE subscriptions
 		SET status = 'active', stripe_subscription_id = $1, updated_at = NOW()
@@ -280,6 +287,12 @@ func CreateSubscription(c *gin.Context) {
 				Price:    stripe.String(request.PlanID),
 				Quantity: stripe.Int64(1),
 			},
+		},
+		SubscriptionData: &stripe.CheckoutSessionSubscriptionDataParams{
+			TrialPeriodDays: stripe.Int64(7),
+		},
+		AutomaticTax: &stripe.CheckoutSessionAutomaticTaxParams{
+			Enabled: stripe.Bool(true),
 		},
 		SuccessURL: stripe.String(config.StripeSuccessURL),
 		CancelURL:  stripe.String(config.StripeCancelURL),
@@ -364,10 +377,24 @@ func CreatePaymentIntent(c *gin.Context) {
 		request.Currency = "usd"
 	}
 
+	var masseurStripeID string
+	err := db.Get(&masseurStripeID, `
+		SELECT u.stripe_account_id 
+		FROM appointments a 
+		JOIN user_profiles u ON a.masseur_id = u.id 
+		WHERE a.id = $1`, request.AppointmentID)
+    if err != nil || masseurStripeID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Masseur not onboarded with Stripe"})
+		return
+	}
+
 	params := &stripe.PaymentIntentParams{
-		Amount: stripe.Int64(request.Amount),
-		Currency: stripe.String(request.Currency),
-		PaymentMethodTypes: stripe.StringSlice([]string{"card"}),
+		Amount:               stripe.Int64(request.Amount),
+		Currency:             stripe.String(request.Currency),
+		ApplicationFeeAmount: stripe.Int64(request.Amount / 10),
+		TransferData: &stripe.PaymentIntentTransferDataParams{
+			Destination: stripe.String(masseurStripeID),
+		},
 		Metadata: map[string]string{
 			"appointment_id": strconv.FormatInt(request.AppointmentID, 10),
 		},
@@ -390,6 +417,52 @@ func CreatePaymentIntent(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"client_secret": intent.ClientSecret})
+}
+
+func CreateMasseurStripeAccount(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	var role string
+	err := db.Get(&role, "SELECT role FROM user_profiles WHERE id = $1", userID)
+	if err != nil || role != "masseur" {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Only masseurs can create Stripe accounts"})
+		return
+	}
+	
+	accParams := &stripe.AccountParams{
+		Type:    stripe.String("express"),
+		Country: stripe.String("US"),
+		Email:   stripe.String("masseur@example.com"),
+	}
+	acc, err := account.New(accParams)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create Stripe account"})
+		return
+	}
+
+	linkParams := &stripe.AccountLinkParams{
+		Account:    stripe.String(acc.ID),
+		RefreshURL: stripe.String("https://harmonia.com/retry"),
+		ReturnURL:  stripe.String("https://harmonia.com/success"),
+		Type:       stripe.String("account_onboarding"),
+	}
+	link, err := accountlink.New(linkParams)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create Stripe onboarding link"})
+		return
+	}
+
+	_, err = db.Exec("UPDATE user_profiles SET stripe_account_id = $1 WHERE id = $2", acc.ID, userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save Stripe account ID"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"onboarding_url": link.URL})
 }
 
 func getAppointments(c *gin.Context) {
