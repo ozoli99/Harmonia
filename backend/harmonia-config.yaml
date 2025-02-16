@@ -13,8 +13,8 @@ ClerkPublicKeyURL: "https://api.clerk.dev/public-key" # Only used if AUTH_PROVID
 ClerkSecretKey: "sk_test_X1nrGSq5xHvjhIusKfQA3J6v6QMIjTAm6XscRJKRL5"
 
 # Payment settings
-StripeSecretKey: "sk_test_yourStripeSecretKey"
 PaymentAdapter: "stripe" # Options: "stripe", "paypal", etc.
+StripeSecretKey: "sk_test_51QpXQsPtC7Lq7KBWegZzYBLhWP1nVOiudTA6jm3klSTkAR7X4NFW7ARZ30FrNfn13av7mObcNGRqVJTcdNmam54f009NCh1MT1"
 
 # Calendar settings (using Google Calendar as default)
 GoogleCredFile: "./path/to/credentials.json" # Path to your Google service account credentials file.

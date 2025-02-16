@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -18,14 +19,22 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
+	"github.com/stripe/stripe-go/v76"
+	"github.com/stripe/stripe-go/v76/checkout/session"
+	"github.com/stripe/stripe-go/v76/paymentintent"
+	"github.com/stripe/stripe-go/v76/webhook"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
 )
 
 type Config struct {
-	Port           string `yaml:"Port"`
-	DatabaseURL    string `yaml:"DatabaseURL"`
-	ClerkSecretKey string `yaml:"ClerkSecretKey"`
+	Port                string `yaml:"Port"`
+	DatabaseURL         string `yaml:"DatabaseURL"`
+	ClerkSecretKey      string `yaml:"ClerkSecretKey"`
+	StripeSecretKey     string `yaml:"StripeSecretKey"`
+	StripeWebhookSecret string `yaml:"StripeWebhookSecret"`
+	StripeSuccessURL    string `yaml:"StripeSuccessURL"`
+	StripeCancelURL     string `yaml:"StripeCancelURL"`
 }
 
 type Appointment struct {
@@ -117,6 +126,22 @@ func main() {
 		apiV1.POST("/appointments", createAppointment)
 		apiV1.PUT("/appointments/:id", updateAppointment)
 		apiV1.DELETE("/appointments/:id", deleteAppointment)
+
+		apiV1.POST("/payments/webhook", HandleStripeWebhook)
+		apiV1.POST("/subscriptions/webhook", HandleStripeSubscriptionWebhook)
+	}
+
+	paymentRoutes := apiV1.Group("/payments")
+	paymentRoutes.Use(RoleMiddleware("client"))
+	{
+		paymentRoutes.POST("/checkout", CreatePaymentIntent)
+	}
+
+	subscriptionRoutes := apiV1.Group("/subscriptions")
+	subscriptionRoutes.Use(RoleMiddleware("client"))
+	{
+		subscriptionRoutes.POST("/checkout", CreateSubscription)
+		subscriptionRoutes.POST("/webhook", HandleStripeSubscriptionWebhook)
 	}
 
 	// Clients can only book/view appointments
@@ -167,6 +192,204 @@ func main() {
 		logger.Fatal("Server forced to shutdown", zap.Error(err))
 	}
 	logger.Info("Server exiting")
+}
+
+func HandleStripeSubscriptionWebhook(c *gin.Context) {
+	payload, err := ioutil.ReadAll(c.Request.Body)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to read request body"})
+		return
+	}
+
+	endpointSecret := config.StripeWebhookSecret
+	event, err := webhook.ConstructEvent(payload, c.GetHeader("Stripe-Signature"), endpointSecret)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid webhook signature"})
+		return
+	}
+
+	switch event.Type {
+	case "checkout.session.completed":
+		var session stripe.CheckoutSession
+		if err := json.Unmarshal(event.Data.Raw, &session); err == nil {
+			handleSubscriptionSuccess(session)
+		}
+
+	case "customer.subscription.deleted":
+		var sub stripe.Subscription
+		if err := json.Unmarshal(event.Data.Raw, &sub); err == nil {
+			handleSubscriptionCancellation(sub)
+		}
+	}
+
+	c.JSON(http.StatusOK, gin.H{"status": "success"})
+}
+
+func handleSubscriptionSuccess(session stripe.CheckoutSession) {
+	userID := session.Metadata["user_id"]
+	subID := session.Subscription.ID
+
+	_, err := db.Exec(`
+		UPDATE subscriptions
+		SET status = 'active', stripe_subscription_id = $1, updated_at = NOW()
+		WHERE user_id = $2
+	`, subID, userID)
+
+	if err != nil {
+		fmt.Printf("Failed to activate subscription: %v\n", err)
+	} else {
+		fmt.Printf("Subscription activated for user %s\n", userID)
+	}
+}
+
+func handleSubscriptionCancellation(sub stripe.Subscription) {
+	_, err := db.Exec(`
+		UPDATE subscriptions
+		SET status = 'canceled', updated_at = NOW()
+		WHERE stripe_subscription_id = $1
+	`, sub.ID)
+
+	if err != nil {
+		fmt.Printf("Failed to cancel subscription: %v\n", err)
+	} else {
+		fmt.Printf("Subscription canceled: %s\n", sub.ID)
+	}
+}
+
+func CreateSubscription(c *gin.Context) {
+	var request struct {
+		PlanID string `json:"plan_id" binding:"required"` // Stripe price_id
+	}
+
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	params := &stripe.CheckoutSessionParams{
+		PaymentMethodTypes: stripe.StringSlice([]string{"card"}),
+		Mode:               stripe.String(string(stripe.CheckoutSessionModeSubscription)),
+		LineItems: []*stripe.CheckoutSessionLineItemParams{
+			{
+				Price:    stripe.String(request.PlanID),
+				Quantity: stripe.Int64(1),
+			},
+		},
+		SuccessURL: stripe.String(config.StripeSuccessURL),
+		CancelURL:  stripe.String(config.StripeCancelURL),
+		Metadata: map[string]string{
+			"user_id": userID.(string),
+		},
+	}
+
+	session, err := session.New(params)
+	if err != nil {
+		log.Printf("Stripe error: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create Stripe session"})
+		return
+	}
+
+	_, err = db.Exec(`
+		INSERT INTO subscriptions (user_id, stripe_session_id, plan_id, status, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, NOW(), NOW())
+	`, userID, session.ID, request.PlanID, "pending")
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to store subscription record"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"checkout_url": session.URL})
+}
+
+func HandleStripeWebhook(c *gin.Context) {
+	payload, err := ioutil.ReadAll(c.Request.Body)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to read request body"})
+		return
+	}
+
+	endpointSecret := config.StripeWebhookSecret
+	event, err := webhook.ConstructEvent(payload, c.GetHeader("Stripe-Signature"), endpointSecret)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid webhook signature"})
+		return
+	}
+
+	switch event.Type {
+	case "payment_intent.succeeded":
+		var intent stripe.PaymentIntent
+		if err := json.Unmarshal(event.Data.Raw, &intent); err == nil {
+			handleSuccessfulPayment(intent)
+		}
+	}
+
+	c.JSON(http.StatusOK, gin.H{"status": "success"})
+}
+
+func handleSuccessfulPayment(intent stripe.PaymentIntent) {
+	appointmentID := intent.Metadata["appointment_id"]
+	_, err := db.Exec(`
+		UPDATE payments
+		SET status = 'paid', stripe_payment_id = $1, updated_at = NOW()
+		WHERE appointment_id = $2
+	`, intent.ID, appointmentID)
+
+	if err != nil {
+		fmt.Printf("Failed to update payment record: %v\n", err)
+	} else {
+		fmt.Printf("Payment successful for appointment %s\n", appointmentID)
+	}
+}
+
+func CreatePaymentIntent(c *gin.Context) {
+	var request struct {
+		AppointmentID int64  `json:"appointment_id" binding:"required"`
+		Amount        int64  `json:"amount" binding:"required"`
+		Currency      string `json:"currency"`
+	}
+
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if request.Currency == "" {
+		request.Currency = "usd"
+	}
+
+	params := &stripe.PaymentIntentParams{
+		Amount: stripe.Int64(request.Amount),
+		Currency: stripe.String(request.Currency),
+		PaymentMethodTypes: stripe.StringSlice([]string{"card"}),
+		Metadata: map[string]string{
+			"appointment_id": strconv.FormatInt(request.AppointmentID, 10),
+		},
+	}
+	intent, err := paymentintent.New(params)
+	if err != nil {
+		log.Printf("Stripe error: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create payment intent"})
+		return
+	}
+
+	_, err = db.Exec(`
+		INSERT INTO payments (appointment_id, amount, currency, status, stripe_payment_id, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $6)
+	`, request.AppointmentID, request.Amount, request.Currency, "pending", intent.ID, time.Now())
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to store payment record"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"client_secret": intent.ClientSecret})
 }
 
 func getAppointments(c *gin.Context) {
@@ -238,6 +461,13 @@ func createAppointment(c *gin.Context) {
 		return
 	}
 	
+	var status string
+	err := db.QueryRow("SELECT status FROM subscriptions WHERE user_id = $1", userID).Scan(&status)
+	if err != nil || status != "active" {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Active subscription required"})
+		return
+	}
+
 	var appt Appointment
 	if err := c.ShouldBindJSON(&appt); err != nil {
 		c.Error(fmt.Errorf("invalid JSON: %w", err))
@@ -258,7 +488,7 @@ func createAppointment(c *gin.Context) {
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
 		RETURNING id
 	`
-	err := db.QueryRowContext(c.Request.Context(), query,
+	err = db.QueryRowContext(c.Request.Context(), query,
 		appt.ClientID,
 		appt.MasseurID,
 		appt.AppointmentDate,
