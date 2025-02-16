@@ -4,7 +4,7 @@ export const fetchAppointments = async (
     token: string | null
 ): Promise<any[]> => {
     const authToken = token || undefined;
-    const response = await fetch(`${API_URL}/api/appointments`, {
+    const response = await fetch(`${API_URL}/api/v1/appointments`, {
         headers: {
             "Content-Type": "application/json",
             Authorization: authToken ? `Bearer ${authToken}` : "",
