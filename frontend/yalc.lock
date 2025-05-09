@@ -1,0 +1,9 @@
+{
+  "version": "v1",
+  "packages": {
+    "kaida-ui": {
+      "signature": "87399d680ebc73d1cfdd58dfbd0ca3ac",
+      "file": true
+    }
+  }
+}

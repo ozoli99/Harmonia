@@ -26,7 +26,7 @@ func main() {
 	}
 	defer logger.Sync()
 
-	cfg, err := config.LoadConfig("harmonia-config.yaml")
+	cfg, err := config.LoadConfig("../../harmonia-config.yaml")
 	if err != nil {
 		logger.Fatal("Error loading configuration", zap.Error(err))
 	}
@@ -61,14 +61,13 @@ func main() {
 		apiV1.PUT("/appointments/:id", appointmentHandler.UpdateAppointment)
 		apiV1.DELETE("/appointments/:id", appointmentHandler.DeleteAppointment)
 
-		apiV1.POST("/payments/webhook", paymentHandler.HandleStripeWebhook)
-		apiV1.POST("/subscriptions/webhook", subscriptionHandler.HandleStripeSubscriptionWebhook)
 	}
-
+	
 	paymentRoutes := apiV1.Group("/payments")
 	paymentRoutes.Use(handlers.RoleMiddleware("client"))
 	{
 		paymentRoutes.POST("/checkout", paymentHandler.CreatePaymentIntent)
+		paymentRoutes.POST("/webhook", paymentHandler.HandleStripeWebhook)
 	}
 
 	subscriptionRoutes := apiV1.Group("/subscriptions")

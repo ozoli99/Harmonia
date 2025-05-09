@@ -1,0 +1,10 @@
+{
+    "greeting": {
+        "morning": "Jó Reggelt",
+        "afternoon": "Jó Napot",
+        "evening": "Jó Estét"
+    },
+    "user": {
+        "fallback": "Felhasználó"
+    }
+}

@@ -1,0 +1,10 @@
+{
+    "greeting": {
+        "morning": "Buenos Días",
+        "afternoon": "Buenas Tardes",
+        "evening": "Buenas Noches"
+    },
+    "user": {
+        "fallback": "Usuario"
+    }
+}
