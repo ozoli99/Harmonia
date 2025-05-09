@@ -1,13 +1,18 @@
 {
-  "dependencies": {
-    "@auth0/auth0-react": "^2.3.0"
-  },
-  "devDependencies": {
-    "concurrently": "^9.1.2"
-  },
-  "scripts": {
-    "start:backend": "cd backend && go run main.go",
-    "start:frontend": "cd frontend && npm start",
-    "start": "npx concurrently \"npm run start:backend\" \"npm run start:frontend\""
-  }
+    "dependencies": {
+        "@auth0/auth0-react": "^2.3.0",
+        "clsx": "^2.1.1",
+        "emoji-picker-react": "^4.12.2",
+        "react-sparklines": "^1.7.0",
+        "tailwind-merge": "^3.0.2",
+        "tailwind-scrollbar": "^4.0.2"
+    },
+    "devDependencies": {
+        "concurrently": "^9.1.2"
+    },
+    "scripts": {
+        "start:backend": "cd backend/cmd/server && go run main.go",
+        "start:frontend": "cd frontend && npm start",
+        "start": "npx concurrently \"npm run start:backend\" \"npm run start:frontend\""
+    }
 }
