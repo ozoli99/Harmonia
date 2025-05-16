@@ -8,8 +8,8 @@ import heroAnimation from "@assets/Hero_Animation.json";
 import CountUp from "react-countup";
 
 const HeroSection: React.FC = () => (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-surface-light dark:bg-surface-dark py-24 px-6 transition-all">
-        {/* Background glow effects */}
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-surface-light dark:bg-surface-dark py-section px-container transition-all">
+        {/* Background glows */}
         <BackgroundGlow
             position="top"
             size="80vw"
@@ -25,9 +25,9 @@ const HeroSection: React.FC = () => (
             opacity={0.3}
         />
 
-        {/* Content Grid */}
+        {/* Main Grid */}
         <div className="relative z-10 max-w-7xl mx-auto w-full grid grid-cols-1 md:grid-cols-2 items-center gap-12">
-            {/* Text Section */}
+            {/* Left Text Block */}
             <div className="text-center md:text-left">
                 <SectionHeader
                     kicker="All-in-one appointment platform"
@@ -61,19 +61,19 @@ const HeroSection: React.FC = () => (
                             variant="ghost"
                             icon={<PlayCircle className="w-5 h-5" />}
                             iconPosition="left"
-                            className="border border-primary/80 text-text-default dark:text-text-inverted hover:bg-primary hover:text-white dark:hover:bg-secondary px-8 rounded-full">
+                            className="border border-primary/80 text-text dark:text-text-inverted hover:bg-primary hover:text-white dark:hover:bg-secondary px-8 rounded-full">
                             View Demo
                         </Button>
                     </Link>
                 </motion.div>
 
-                {/* Counter Section */}
+                {/* Stats */}
                 <motion.div
                     className="mt-10 text-center md:text-left"
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.8, duration: 0.8 }}>
-                    <p className="text-base sm:text-lg text-text-muted dark:text-mutedDark">
+                    <p className="text-base sm:text-lg text-text-muted dark:text-text-muted">
                         Empowering over
                     </p>
                     <motion.span
@@ -83,13 +83,13 @@ const HeroSection: React.FC = () => (
                         transition={{ delay: 1, duration: 0.6 }}>
                         <CountUp end={3200} duration={3} separator="," />+
                     </motion.span>
-                    <p className="text-sm text-muted dark:text-mutedDark mt-1">
+                    <p className="text-sm text-text-muted dark:text-text-muted mt-1">
                         service professionals worldwide
                     </p>
                 </motion.div>
             </div>
 
-            {/* Animation Section */}
+            {/* Right Animation */}
             <motion.div
                 className="w-full max-w-md mx-auto md:mx-0"
                 initial={{ opacity: 0, x: 30 }}
@@ -104,7 +104,7 @@ const HeroSection: React.FC = () => (
             </motion.div>
         </div>
 
-        {/* Scroll Indicator */}
+        {/* Scroll Hint */}
         <motion.div
             className="absolute bottom-8 z-10 flex justify-center items-center w-10 h-10 rounded-full bg-surface-light/70 dark:bg-white/10 backdrop-blur-md shadow-md border border-primary/30 text-primary dark:text-secondary"
             animate={{ y: [0, 5, 0] }}

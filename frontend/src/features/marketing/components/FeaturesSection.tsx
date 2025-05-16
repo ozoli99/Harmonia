@@ -22,7 +22,7 @@ const features = [
         description:
             "Enable secure online payments and automated invoicing to simplify your billing workflow.",
         icon: (
-            <CreditCardIcon className="w-12 h-12 text-text-default dark:text-accent" />
+            <CreditCardIcon className="w-12 h-12 text-text dark:text-secondary" />
         ),
     },
     {
@@ -44,7 +44,7 @@ const features = [
 ];
 
 const FeaturesSection: React.FC = () => (
-    <section className="relative py-28 sm:py-32 md:py-40 overflow-hidden bg-surface-light dark:bg-surface-dark transition-all">
+    <section className="relative py-section sm:py-32 md:py-40 overflow-hidden bg-surface-light dark:bg-surface-dark transition-colors duration-300">
         {/* Background Glows */}
         <BackgroundGlow
             aria-hidden="true"
@@ -68,12 +68,12 @@ const FeaturesSection: React.FC = () => (
         </SectionHeader>
 
         {/* Features Grid */}
-        <div className="relative z-10 mt-16 sm:mt-20 px-6">
+        <div className="relative z-10 mt-16 sm:mt-20 px-container">
             <div className="flex flex-col sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-10 max-w-7xl mx-auto sm:overflow-visible overflow-x-auto pb-4 sm:pb-0 snap-x sm:snap-none">
                 {features.map((feature, idx) => (
                     <motion.div
                         key={idx}
-                        className="min-w-[280px] sm:min-w-0 snap-start p-8 bg-white/60 dark:bg-surface-dark/60 rounded-2xl shadow-lg border border-primary/30 dark:border-secondary/30 backdrop-blur-xl hover:scale-[1.03] hover:shadow-xl transition-transform flex flex-col items-center text-center relative"
+                        className="min-w-[280px] sm:min-w-0 snap-start p-8 bg-white/60 dark:bg-surface-dark/60 rounded-2xl shadow-base border border-primary/30 dark:border-secondary/30 backdrop-blur-xl hover:scale-[1.03] hover:shadow-lg transition-transform flex flex-col items-center text-center relative"
                         initial={{ opacity: 0, y: 30 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
@@ -87,7 +87,7 @@ const FeaturesSection: React.FC = () => (
                         <div className="mb-6 p-5 bg-surface-light/70 dark:bg-base/70 rounded-full shadow-md backdrop-blur-md">
                             {feature.icon}
                         </div>
-                        <h3 className="text-xl font-semibold text-text-default dark:text-text-inverted">
+                        <h3 className="text-xl font-semibold text-text dark:text-text-inverted">
                             {feature.title}
                         </h3>
                         <p className="mt-3 text-sm sm:text-base text-text-muted dark:text-mutedDark leading-relaxed">

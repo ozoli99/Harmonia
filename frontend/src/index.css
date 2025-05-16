@@ -1,20 +1,22 @@
-/* index.css */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@layer utilities {
-    @keyframes soft-pulse {
+/* ─────────────────────
+   Base Layer
+───────────────────── */
+@layer base {
+    @keyframes softPulse {
         0%,
         100% {
-            box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); /* green-500 glow */
+            box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4);
         }
         50% {
             box-shadow: 0 0 0 6px rgba(34, 197, 94, 0);
         }
     }
 
-    @keyframes dropdown-in {
+    @keyframes dropdownIn {
         from {
             opacity: 0;
             transform: translateY(-4px);
@@ -23,38 +25,104 @@
             opacity: 1;
             transform: translateY(0);
         }
-    }
-    @keyframes dropdown-out {
-        from {
-            opacity: 1;
-            transform: translateY(0);
-        }
-        to {
-            opacity: 0;
-            transform: translateY(-4px);
-        }
-    }
-    .animate-dropdown-in {
-        animation: dropdown-in 0.2s ease-out forwards;
-    }
-    .animate-dropdown-out {
-        animation: dropdown-out 0.15s ease-in forwards;
     }
 
-    .animate-soft-pulse {
-        animation: soft-pulse 2.5s ease-in-out infinite;
+    @keyframes dropdownOut {
+        from {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        to {
+            opacity: 0;
+            transform: translateY(-4px);
+        }
+    }
+
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+            "Helvetica Neue", Arial, sans-serif;
     }
 }
 
+/* ─────────────────────
+   Utility Layer
+───────────────────── */
+@layer utilities {
+    /* Animations */
+    .animate-softPulse {
+        animation: softPulse 2.5s ease-in-out infinite;
+    }
+    .animate-dropdownIn {
+        animation: dropdownIn 0.2s ease-out forwards;
+    }
+    .animate-dropdownOut {
+        animation: dropdownOut 0.15s ease-in forwards;
+    }
+
+    /* Semantic Spacing */
+    .py-section {
+        @apply py-[theme(spacing.section)];
+    }
+    .px-container {
+        @apply px-6 sm:px-8;
+    }
+
+    /* Backgrounds */
+    .bg-surface {
+        @apply bg-surface-light dark:bg-surface-dark;
+    }
+
+    /* Text Colors */
+    .text-body {
+        @apply text-text dark:text-text-inverted;
+    }
+    .text-subtle {
+        @apply text-text-muted dark:text-text-subtle;
+    }
+    .text-brand {
+        @apply text-primary dark:text-secondary;
+    }
+
+    /* Hover variants for dropdown and buttons */
+    .hover-highlight {
+        @apply hover:bg-background dark:hover:bg-background-dark transition-colors;
+    }
+
+    /* Icon Utility */
+    .icon {
+        @apply w-5 h-5 text-primary dark:text-secondary;
+    }
+
+    /* FAQ Components */
+    .faq-card {
+        @apply rounded-xl border border-primary/20 dark:border-secondary/30
+      bg-white/70 dark:bg-surface-dark/50 backdrop-blur-md shadow-md transition-all;
+    }
+    .faq-toggle {
+        @apply flex justify-between items-center w-full p-5 text-left;
+    }
+    .faq-question {
+        @apply text-base sm:text-lg font-medium text-body;
+    }
+    .faq-answer {
+        @apply px-5 pb-5 text-subtle text-base sm:text-lg leading-relaxed overflow-hidden;
+    }
+
+    /* Dropdown Menu Item Style */
+    .dropdown-item {
+        @apply flex items-center gap-2 px-3 py-2 text-sm rounded-md cursor-pointer transition-colors
+      data-[highlighted]:bg-background dark:data-[highlighted]:bg-background-dark
+      data-[highlighted]:text-body focus:outline-none;
+    }
+}
+
+/* ─────────────────────
+   Scrollbar Utility
+───────────────────── */
 .scrollbar-none::-webkit-scrollbar {
     display: none;
 }
 .scrollbar-none {
     -ms-overflow-style: none;
     scrollbar-width: none;
-}
-
-body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-        "Helvetica Neue", Arial, sans-serif;
 }

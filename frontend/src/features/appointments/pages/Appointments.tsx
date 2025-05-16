@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import AppointmentCard from "@features/appointments/components/AppointmentCard";
 
 import useFilteredAppointments from "@shared/hooks/useFilteredAppointments";
-import useAppointments from "@features/appointments/hooks/useAppointments";
+import useDummyAppointments from "../hooks/useDummyAppointments";
 import {
     LoadingIndicator,
     ErrorMessage,
@@ -20,7 +20,7 @@ type AppointmentFilter = "All" | NonNullable<Appointment["status"]>;
 
 const Appointments: React.FC = () => {
     const { appointments, loading, error, updateAppointment } =
-        useAppointments();
+        useDummyAppointments();
     const [view, setView] = useState<ViewMode>("upcoming");
     const [filter, setFilter] = useState<AppointmentFilter>("All");
 

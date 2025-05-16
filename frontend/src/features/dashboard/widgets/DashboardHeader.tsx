@@ -7,62 +7,60 @@ import NextAppointmentWidget from "./NextAppointmentWidget";
 import GapFinderWidget from "./GapFinderWidget";
 import { Appointment } from "@features/appointments/types/appointments";
 import TopControls from "../components/TopControls";
-import {
-    StatusAvatarDropdown,
-    StatusType,
-} from "../components/StatusAvatarDropdown";
-import GreetingBlock from "../components/GreetingBlock";
+import { StatusAvatarDropdown } from "../components/StatusAvatarDropdown";
 import StatusDialog from "../components/StatusDialog";
 import { useStatusAutomation } from "../automations/useStatusAutomation";
 import { ScheduledStatus } from "../types/scheduledStatus";
 import StatusCenterDialog from "../components/StatusCenterDialog";
 import { motion } from "framer-motion";
-import CustomTimeRangeSelector from "../components/CustomTimeRangeSelector";
-import { Button } from "kaida-ui";
+import {
+    Button,
+    CustomTimeRangeSelector,
+    GreetingBlock,
+    Status,
+} from "kaida-ui";
 import { cn } from "@shared/utils/ui/cn";
+import { getGreeting, isStatus, getSmartSuggestions } from "../utils/timeUtils";
+import { dummyClients } from "@features/clients/constants/clients";
+import { dummyAppointments } from "../constants/dashboardMocks";
 
-const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return "Good Morning";
-    if (hour < 18) return "Good Afternoon";
-    return "Good Evening";
-};
-
-const isStatusType = (value: string): value is StatusType =>
-    ["Available", "Busy", "Offline"].includes(value);
-
-const getSmartSuggestions = (): string[] => {
-    const hour = dayjs().hour();
-    if (hour < 11) return ["Planning", "Available", "Focus time"];
-    if (hour < 17) return ["In session", "Admin tasks", "Coffee break"];
-    return ["Offline", "Done for today"];
-};
-
-const DashboardHeader: React.FC<{
-    status?: StatusType;
-    timelineAppointments: Appointment[];
+interface DashboardHeaderProps {
+    appointments: Appointment[];
+    gaps?: any;
+    peakRange?: any;
+    scheduledStatuses?: ScheduledStatus[];
     onNewAppointment?: () => void;
     onOpenCalendar?: () => void;
     onAddClient?: () => void;
     timelineStartHour?: number;
     timelineEndHour?: number;
-    gaps?: any;
-    peakRange?: any;
-}> = ({
-    status = "Available",
+}
+
+const SHIFT_PRESETS: Array<[number, number, string]> = [
+    [6, 18, "Early Shift"],
+    [8, 20, "Workday"],
+    [10, 22, "Late Start"],
+];
+
+const toIsoStart = (appointment: Appointment): string =>
+    appointment.date.includes("T")
+        ? appointment.date
+        : `${appointment.date}T${appointment.startTime}`;
+
+const DashboardHeader: React.FC<DashboardHeaderProps> = ({
+    appointments = [],
+    gaps = [],
+    peakRange,
     onNewAppointment,
     onOpenCalendar,
     onAddClient,
-    timelineAppointments = [],
     timelineStartHour = 8,
     timelineEndHour = 20,
-    gaps = [],
-    peakRange,
 }) => {
     const { user } = useUser();
     const [today, setToday] = useState(dayjs().format("dddd, MMMM D, YYYY"));
     const [greeting, setGreeting] = useState(getGreeting());
-    const [currentStatus, setCurrentStatus] = useState<StatusType>("Available");
+    const [currentStatus, setCurrentStatus] = useState<Status>("Available");
     const [customStatus, setCustomStatus] = useState<string | null>(null);
     const [customStatusExpiry, setCustomStatusExpiry] = useState<number | null>(
         null
@@ -110,7 +108,7 @@ const DashboardHeader: React.FC<{
             5 * 60 * 1000
         );
         return () => clearInterval(interval);
-    }, [timelineAppointments, customStatus, currentStatus]);
+    }, [appointments, customStatus, currentStatus]);
 
     useEffect(() => {
         const saved = localStorage.getItem("timelineRange");
@@ -128,7 +126,7 @@ const DashboardHeader: React.FC<{
 
     useEffect(() => {
         const now = dayjs();
-        const isInSession = timelineAppointments.some((appointment) => {
+        const isInSession = appointments.some((appointment) => {
             const start = dayjs(`${appointment.date}T${appointment.startTime}`);
             const end = dayjs(`${appointment.date}T${appointment.endTime}`);
             return (
@@ -141,7 +139,7 @@ const DashboardHeader: React.FC<{
         } else if (!isInSession && currentStatus === "Busy") {
             setCurrentStatus("Available");
         }
-    }, [timelineAppointments, customStatus, currentStatus]);
+    }, [appointments, customStatus, currentStatus]);
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -157,7 +155,7 @@ const DashboardHeader: React.FC<{
     }, [customStatusExpiry]);
 
     useStatusAutomation({
-        appointments: timelineAppointments,
+        appointments: appointments,
         currentStatus,
         scheduledStatuses,
         onSetStatus: setCurrentStatus,
@@ -178,7 +176,7 @@ const DashboardHeader: React.FC<{
         if (customStatus) return;
         const now = dayjs();
 
-        const next = timelineAppointments
+        const next = appointments
             .filter((a) => dayjs(`${a.date}T${a.startTime}`).isAfter(now))
             .sort((a, b) =>
                 dayjs(`${a.date}T${a.startTime}`).diff(
@@ -186,7 +184,7 @@ const DashboardHeader: React.FC<{
                 )
             )[0];
 
-        const last = timelineAppointments
+        const last = appointments
             .filter((a) => dayjs(`${a.date}T${a.endTime}`).isBefore(now))
             .sort((a, b) =>
                 dayjs(`${b.date}T${b.endTime}`).diff(
@@ -212,6 +210,34 @@ const DashboardHeader: React.FC<{
         }
     };
 
+    dummyAppointments.push({
+        id: 999,
+        clientId: 1,
+        providerId: 1,
+        serviceType: "Demo Session",
+        date: dayjs().format("YYYY-MM-DD"),
+        startTime: dayjs().add(30, "minute").format("HH:mm"),
+        endTime: dayjs().add(90, "minute").format("HH:mm"),
+        status: "Upcoming",
+        createdAt: dayjs().toISOString(),
+        updatedAt: dayjs().toISOString(),
+    });
+
+    const getNextAppointment = (appts: Appointment[]) => {
+        const now = dayjs();
+        return appts
+            .filter((a) => dayjs(toIsoStart(a)).isAfter(now))
+            .sort((a, b) => dayjs(toIsoStart(a)).diff(dayjs(toIsoStart(b))))[0];
+    };
+
+    const nextAppointment = getNextAppointment(appointments);
+
+    const nextClient = nextAppointment
+        ? dummyClients.find((client) => client.id === nextAppointment.clientId)
+        : undefined;
+
+    console.log(nextAppointment);
+
     return (
         <div className="w-full space-y-6 pb-6 border-b border-border">
             <TopControls
@@ -224,14 +250,15 @@ const DashboardHeader: React.FC<{
                 notificationsCount={3}
             />
 
-            <div className="relative flex flex-col gap-6 p-6 rounded-2xl theme-panel">
+            <div className="relative flex flex-col gap-6 p-6 rounded-xl shadow-sm">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div className="flex items-center gap-4 min-w-0">
                         <StatusAvatarDropdown
+                            userName={user?.firstName ?? ""}
                             userImageUrl={user?.imageUrl}
                             currentStatus={currentStatus}
                             onStatusChange={(status) => {
-                                if (isStatusType(status)) {
+                                if (isStatus(status)) {
                                     setCurrentStatus(status);
                                     setCustomStatus(null);
                                 }
@@ -249,6 +276,9 @@ const DashboardHeader: React.FC<{
                                 today={today}
                                 customStatus={customStatus}
                                 userName={user?.firstName ?? undefined}
+                                animated
+                                showDate
+                                showEmoji
                             />
                         </div>
                     </div>
@@ -267,13 +297,7 @@ const DashboardHeader: React.FC<{
                             </span>
 
                             <div className="flex flex-wrap items-center gap-2">
-                                {(
-                                    [
-                                        [6, 18, "Early Shift"],
-                                        [8, 20, "Workday"],
-                                        [10, 22, "Late Start"],
-                                    ] as [number, number, string][]
-                                ).map(([start, end, label]) => {
+                                {SHIFT_PRESETS.map(([start, end, label]) => {
                                     const isActive =
                                         startHour === start && endHour === end;
                                     return (
@@ -342,17 +366,25 @@ const DashboardHeader: React.FC<{
                         )}
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
-                        <NextAppointmentWidget
-                            clientName="Emma Taylor"
-                            startTime={new Date("2025-05-06T23:40:00")}
-                            onViewDetails={() => {}}
-                            onMessageClient={() => {}}
-                        />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 items-start">
+                        {nextAppointment && nextClient && (
+                            <NextAppointmentWidget
+                                appointment={nextAppointment}
+                                client={nextClient}
+                                startTime={
+                                    new Date(toIsoStart(nextAppointment))
+                                }
+                                onOpenDetails={() => {}}
+                                onMessageClient={() => {}}
+                                onSendReminder={() => {}}
+                                onPrepareRoom={() => {}}
+                            />
+                        )}
                         <GapFinderWidget
                             gapStart="14:00"
                             gapEnd="16:00"
-                            duration="2 hours"
+                            appointments={appointments}
+                            minDurationMins={45}
                             suggestedAction="break"
                             onBookClient={() => console.log("Book a client")}
                             onPlanAdmin={() => console.log("Plan admin block")}
@@ -361,10 +393,10 @@ const DashboardHeader: React.FC<{
                     </div>
                 </motion.div>
 
-                {timelineAppointments.length > 0 && (
+                {appointments.length > 0 && (
                     <div className="absolute left-0 right-0 bottom-0 rounded-b-2xl overflow-hidden">
                         <TimelineBar
-                            appointments={timelineAppointments}
+                            appointments={appointments}
                             gaps={gaps}
                             startHour={startHour}
                             timelineMinutes={totalTimelineMinutes}

@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { BackgroundGlow, Button, SectionHeader } from "kaida-ui";
 
 const CTASection: React.FC = () => (
-    <section className="relative py-28 sm:py-32 text-center bg-surface-light dark:bg-surface-dark transition-colors overflow-hidden">
+    <section className="relative py-section text-center bg-surface-light dark:bg-surface-dark transition-colors overflow-hidden">
         {/* Background glow */}
         <div className="absolute inset-0 pointer-events-none z-0">
             <BackgroundGlow
@@ -18,7 +18,7 @@ const CTASection: React.FC = () => (
 
         {/* Content */}
         <motion.div
-            className="relative z-10 max-w-3xl mx-auto px-6"
+            className="relative z-10 max-w-3xl mx-auto px-container"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -35,7 +35,7 @@ const CTASection: React.FC = () => (
                         <Button
                             size="lg"
                             variant="default"
-                            className="rounded-full px-8 py-4 text-lg shadow-md">
+                            className="btn-primary text-lg px-8 py-4 rounded-full shadow-md">
                             Create Your Free Account
                         </Button>
                     </Link>
@@ -48,7 +48,7 @@ const CTASection: React.FC = () => (
                         <Button
                             size="lg"
                             variant="ghost"
-                            className="rounded-full px-8 py-4 text-lg border border-primary text-primary dark:text-secondary dark:border-secondary hover:bg-primary/10 dark:hover:bg-secondary/10">
+                            className="text-primary dark:text-secondary border border-primary dark:border-secondary hover:bg-primary/10 dark:hover:bg-secondary/10 text-lg px-8 py-4 rounded-full">
                             Explore the Platform
                         </Button>
                     </Link>

@@ -9,9 +9,12 @@ export default function useFilteredAppointments(
     const now = useMemo(() => new Date(), []);
 
     return useMemo(() => {
-        const isUpcoming = (a: Appointment) =>
-            new Date(`${a.date}T${a.startTime}`) >= now;
-
+        const isUpcoming = (appointment: Appointment) => {
+            const start = appointment.date.includes("T")
+                ? new Date(appointment.date)
+                : new Date(`${appointment.date}T${appointment.startTime}`);
+            return start >= now;
+        };
         const base =
             view === "upcoming"
                 ? appointments.filter(isUpcoming)

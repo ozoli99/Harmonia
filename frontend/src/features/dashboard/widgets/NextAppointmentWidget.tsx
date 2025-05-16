@@ -1,47 +1,49 @@
-import React, { useMemo, useEffect } from "react";
+import React, { useMemo } from "react";
 import { motion } from "framer-motion";
-import { MessageSquare, Info } from "lucide-react";
+import dayjs from "dayjs";
+import {
+    MessageSquare,
+    CheckCircle,
+    Clock4,
+    MoreVertical,
+    Phone,
+    Video,
+} from "lucide-react";
 import { Button, Avatar } from "kaida-ui";
 import { cn } from "@shared/utils/ui/cn";
 import * as Tooltip from "@radix-ui/react-tooltip";
-import dayjs from "dayjs";
+import * as Dropdown from "@radix-ui/react-dropdown-menu";
+import { getPrimaryCTA } from "../utils/getPrimaryCTA";
+import { Appointment } from "@features/appointments/types/appointments";
+import { useSidebar } from "@shared/contexts/SidebarContext";
+import { Client } from "@features/clients/types/client";
 
-type ChecklistItem = string | { label: string; completed?: boolean };
-
-type NextAppointmentWidgetProps = {
-    clientName: string;
-    clientNote?: string;
-    clientAvatarUrl?: string;
-    clientChecklist?: ChecklistItem[];
+export type NextAppointmentWidgetProps = {
+    // --- Core Data ---------------------------
+    appointment: Appointment;
+    client: Client;
     startTime: Date;
-    onViewDetails?: () => void;
+    appointmentMode?: "inPerson" | "teleHealth";
+    reminderSent?: boolean;
+    // --- Handlers ----------------------------
+    onOpenDetails: () => void;
     onMessageClient?: () => void;
+    onSendReminder?: () => void;
+    onPrepareRoom?: () => void;
+    onJoinCall?: () => void;
+    onMarkArrived?: () => void;
+    onCheckIn?: () => void;
+    onCancel?: () => void;
+    onReschedule?: () => void;
+    // --- Visuals ----------------------------
     className?: string;
-    shouldSpeak?: boolean;
 };
 
 const getSessionLabel = (minutes: number) => {
     if (minutes <= 0) return "Now";
-    if (minutes <= 5) return "Starting Soon";
-    if (minutes <= 15) return "In a few minutes";
     if (minutes < 60) return `In ${minutes} min`;
     const hours = Math.floor(minutes / 60);
     return `In ${hours}h`;
-};
-
-const getPrimaryCTA = (minutes: number) => {
-    if (minutes <= 0) return "Start Session";
-    if (minutes <= 5) return "Greet Client";
-    if (minutes <= 15) return "Prepare";
-    return "View Details";
-};
-
-const formatTimeUntil = (minutes: number) => {
-    if (minutes <= 0) return "now";
-    if (minutes < 60) return `${minutes} minute${minutes === 1 ? "" : "s"}`;
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    return `${hours}h${mins > 0 ? ` ${mins}m` : ""}`;
 };
 
 const getStatusClass = (minutes: number) => {
@@ -50,134 +52,198 @@ const getStatusClass = (minutes: number) => {
     return "bg-success/20 text-success";
 };
 
-const speak = (text: string) => {
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = "en-US";
-    speechSynthesis.speak(utterance);
+const getLeftBorderClass = (minutes: number) => {
+    if (minutes <= 0) return "border-l-danger";
+    if (minutes <= 5) return "border-l-warning";
+    return "border-l-success";
 };
 
 const NextAppointmentWidget: React.FC<NextAppointmentWidgetProps> = ({
-    clientName,
-    clientNote,
-    clientAvatarUrl,
-    clientChecklist = [],
+    appointment,
+    client,
     startTime,
-    onViewDetails,
+    appointmentMode = "inPerson",
+    reminderSent = false,
+    onOpenDetails,
     onMessageClient,
+    onSendReminder,
+    onPrepareRoom,
+    onJoinCall,
+    onMarkArrived,
+    onCheckIn,
+    onCancel,
+    onReschedule,
     className,
-    shouldSpeak = false,
 }) => {
+    const { setSelectedClient, setSelectedAppointment } = useSidebar();
+
     const minutesUntil = useMemo(() => {
         const now = dayjs();
         const start = dayjs(startTime);
         return Math.round(start.diff(now, "minute"));
     }, [startTime]);
 
-    const timeUntil = formatTimeUntil(minutesUntil);
-    const isUrgent = minutesUntil <= 5;
+    const primary = getPrimaryCTA({
+        minutesUntil,
+        appointmentMode,
+        reminderSent,
+    });
 
-    useEffect(() => {
-        if (minutesUntil === 10 && shouldSpeak) {
-            speak(`Your next client, ${clientName}, arrives in 10 minutes.`);
+    const handlePrimary = (e: React.MouseEvent<HTMLButtonElement>) => {
+        e.stopPropagation();
+        switch (primary) {
+            case "Join Call":
+                onJoinCall?.();
+                break;
+            case "Mark Arrived":
+                onMarkArrived?.();
+                break;
+            case "Prepare Room":
+                onPrepareRoom?.();
+                break;
+            case "Send Reminder":
+                onSendReminder?.();
+                break;
+            default:
+                onOpenDetails();
         }
-    }, [minutesUntil, clientName, shouldSpeak]);
+    };
+
+    const openSidebar = () => {
+        setSelectedAppointment(appointment);
+        setSelectedClient(client);
+        onOpenDetails?.();
+    };
 
     return (
         <motion.div
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
+            transition={{ duration: 0.35 }}
             className={cn(
-                "theme-panel p-4 rounded-xl flex flex-col sm:flex-row items-start gap-4 shadow-sm border-l-4",
-                isUrgent
-                    ? "border-danger animate-soft-pulse"
-                    : "border-primary",
+                "p-3 rounded-xl shadow-sm border-l-4 cursor-pointer select-none",
+                getLeftBorderClass(minutesUntil),
+                minutesUntil <= 5 && "animate-soft-pulse",
                 className
-            )}>
-            <Avatar name={clientName} avatarUrl={clientAvatarUrl} size={40} />
-
-            <div className="flex-1 flex flex-col gap-2">
-                <div className="flex items-center justify-between">
-                    <h3 className="font-semibold theme-heading">
-                        {clientName}
-                    </h3>
-                    <span
-                        className={cn(
-                            "text-xs px-2 py-0.5 rounded font-medium",
-                            getStatusClass(minutesUntil)
-                        )}>
-                        {getSessionLabel(minutesUntil)}
-                    </span>
-                </div>
-
-                <p className="text-sm theme-subtext" aria-live="polite">
-                    Your next session starts in {timeUntil}.
-                </p>
-
-                {clientNote && (
-                    <p className="text-xs theme-subtext italic">{clientNote}</p>
-                )}
-
-                {clientChecklist.length > 0 && (
-                    <ul className="text-xs theme-subtext mt-1 space-y-0.5 pl-4 list-disc">
-                        {clientChecklist.map((item, i) => {
-                            const text =
-                                typeof item === "string" ? item : item.label;
-                            const done =
-                                typeof item === "string"
-                                    ? false
-                                    : item.completed;
-                            return (
-                                <li
-                                    key={i}
-                                    className={cn(
-                                        done && "line-through opacity-60"
-                                    )}>
-                                    {text}
-                                </li>
-                            );
-                        })}
-                    </ul>
-                )}
-
-                {minutesUntil > 0 && minutesUntil <= 15 && (
-                    <div className="h-1 w-full bg-muted/30 rounded">
-                        <div
-                            className="h-full theme-kpi-progress rounded transition-all"
-                            style={{
-                                width: `${((15 - minutesUntil) / 15) * 100}%`,
-                            }}
-                        />
+            )}
+            onClick={openSidebar}>
+            <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3 min-w-0">
+                    <Avatar
+                        avatarUrl={client.avatar}
+                        name={client.name}
+                        size={42}
+                    />
+                    <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                            <h3 className="font-medium truncate theme-heading">
+                                {client.name}
+                            </h3>
+                            <span
+                                className={cn(
+                                    "text-xs px-2 py-[1px] rounded-full font-semibold min-w-[46px] text-center",
+                                    getStatusClass(minutesUntil)
+                                )}>
+                                {getSessionLabel(minutesUntil)}
+                            </span>
+                        </div>
+                        <div className="flex items-center gap-1 text-xs text-text-muted dark:text-text-subtle mt-0.5">
+                            <Clock4 className="w-3 h-3 shrink-0" />
+                            {dayjs(startTime).format("HH:mm")}
+                            {appointment.serviceType && (
+                                <p className="text-xs text-text-muted dark:text-text-subtle truncate">
+                                    {appointment.serviceType}
+                                </p>
+                            )}
+                        </div>
                     </div>
-                )}
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                    <div className="flex items-center gap-1">
+                        <Button
+                            size="sm"
+                            variant="ghost"
+                            icon={
+                                primary === "Join Call" ? (
+                                    <Video className="w-4 h-4" />
+                                ) : primary === "Prepare Room" ? (
+                                    <CheckCircle className="w-4 h-4" />
+                                ) : primary === "Send Reminder" ? (
+                                    <Phone className="w-4 h-4" />
+                                ) : null
+                            }
+                            onClick={handlePrimary}>
+                            {primary}
+                        </Button>
 
-                <div className="flex flex-wrap gap-2 mt-2">
-                    <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={onViewDetails}
-                        icon={<Info className="w-4 h-4" />}>
-                        {getPrimaryCTA(minutesUntil)}
-                    </Button>
+                        <Tooltip.Provider>
+                            <Tooltip.Root>
+                                <Tooltip.Trigger asChild>
+                                    <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        icon={
+                                            <MessageSquare className="w-4 h-4" />
+                                        }
+                                        aria-label={`Message ${client.name}`}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            onMessageClient?.();
+                                        }}
+                                    />
+                                </Tooltip.Trigger>
+                                <Tooltip.Content
+                                    side="top"
+                                    className="theme-tooltip">
+                                    Message {client.name}
+                                </Tooltip.Content>
+                            </Tooltip.Root>
+                        </Tooltip.Provider>
 
-                    <Tooltip.Provider>
-                        <Tooltip.Root>
-                            <Tooltip.Trigger asChild>
+                        <Dropdown.Root>
+                            <Dropdown.Trigger asChild>
                                 <Button
                                     size="sm"
                                     variant="ghost"
-                                    icon={<MessageSquare className="w-4 h-4" />}
-                                    aria-label={`Message ${clientName}`}
-                                    onClick={onMessageClient}
+                                    icon={<MoreVertical className="w-4 h-4" />}
+                                    aria-label="More actions"
+                                    onClick={(e) => e.stopPropagation()}
                                 />
-                            </Tooltip.Trigger>
-                            <Tooltip.Content
-                                className="theme-tooltip"
-                                side="top">
-                                Message {clientName}
-                            </Tooltip.Content>
-                        </Tooltip.Root>
-                    </Tooltip.Provider>
+                            </Dropdown.Trigger>
+                            <Dropdown.Content
+                                align="end"
+                                sideOffset={4}
+                                className="w-44 py-1 rounded-md shadow-lg z-50 bg-white dark:bg-slate-800 border border-border/20 focus:outline-none">
+                                <Dropdown.Item
+                                    disabled={!onCheckIn}
+                                    className="flex items-center gap-2 px-3 py-2 text-sm text-slate-700 dark:text-slate-200 transition-colors cursor-pointer data-[highlighted]:bg-accent/10 data-[highlighted]:text-foreground data-[disabled]:opacity-40 data-[disabled]:pointer-events-none"
+                                    onSelect={(e) => {
+                                        e.preventDefault();
+                                        onCheckIn?.();
+                                    }}>
+                                    Check‑in
+                                </Dropdown.Item>
+                                <Dropdown.Item
+                                    disabled={!onReschedule}
+                                    className="flex items-center gap-2 px-3 py-2 text-sm text-slate-700 dark:text-slate-200 transition-colors cursor-pointer data-[highlighted]:bg-accent/10 data-[highlighted]:text-foreground data-[disabled]:opacity-40 data-[disabled]:pointer-events-none"
+                                    onSelect={(e) => {
+                                        e.preventDefault();
+                                        onReschedule?.();
+                                    }}>
+                                    Reschedule
+                                </Dropdown.Item>
+                                <Dropdown.Item
+                                    disabled={!onCancel}
+                                    className="flex items-center gap-2 px-3 py-2 text-sm text-slate-700 dark:text-slate-200 transition-colors cursor-pointer data-[highlighted]:bg-accent/10 data-[highlighted]:text-foreground data-[disabled]:opacity-40 data-[disabled]:pointer-events-none"
+                                    onSelect={(e) => {
+                                        e.preventDefault();
+                                        onCancel?.();
+                                    }}>
+                                    Cancel Appointment
+                                </Dropdown.Item>
+                            </Dropdown.Content>
+                        </Dropdown.Root>
+                    </div>
                 </div>
             </div>
         </motion.div>

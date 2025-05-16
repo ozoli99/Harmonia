@@ -1,17 +1,18 @@
-import React, { Suspense, lazy } from "react";
-import { Routes, Route } from "react-router-dom";
+import React from "react";
 import { ToastProvider } from "@shared/contexts/ToastContext";
+import { DarkModeProvider } from "@shared/contexts/DarkModeContext";
+import { SidebarProvider } from "@shared/contexts/SidebarContext";
 import ToastContainer from "@features/notifications/components/ToastContainer";
+import ScrollToTop from "@components/layout/ScrollToTop";
+import ProtectedLayoutRoute from "@components/layout/ProtectedLayoutRoute";
+import { Routes, Route } from "react-router-dom";
+import { Suspense, lazy } from "react";
 import {
     SkipToContent,
     PageTransition,
     ErrorBoundary,
     LoadingScreen,
 } from "kaida-ui";
-import ScrollToTop from "@components/layout/ScrollToTop";
-import { DarkModeProvider } from "@shared/contexts/DarkModeContext";
-import { SidebarProvider } from "@shared/contexts/SidebarContext";
-import ProtectedLayoutRoute from "@components/layout/ProtectedLayoutRoute";
 
 const Home = lazy(() => import("@pages/Home"));
 const Login = lazy(() => import("@pages/Login"));
@@ -37,7 +38,7 @@ const App: React.FC = () => {
         <ToastProvider>
             <DarkModeProvider>
                 <SidebarProvider>
-                    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+                    <div className="min-h-screen bg-background dark:bg-background-dark text-body transition-colors duration-300">
                         <SkipToContent />
                         <ScrollToTop />
 
@@ -72,7 +73,6 @@ const App: React.FC = () => {
                                             </ProtectedLayoutRoute>
                                         }
                                     />
-
                                     <Route
                                         path="/appointments"
                                         element={

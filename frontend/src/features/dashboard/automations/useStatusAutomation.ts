@@ -1,16 +1,16 @@
 import { Appointment } from "@features/appointments/types/appointments";
-import { StatusType } from "../components/StatusAvatarDropdown";
 import { useEffect } from "react";
 import { statusTriggerRules } from "./rules";
 import { runStatusRules } from "./engine";
 import dayjs from "dayjs";
 import { ScheduledStatus } from "../types/scheduledStatus";
+import { Status } from "kaida-ui";
 
 interface Options {
     appointments: Appointment[];
-    currentStatus: StatusType;
+    currentStatus: Status;
     scheduledStatuses?: ScheduledStatus[];
-    onSetStatus: (status: StatusType) => void;
+    onSetStatus: (status: Status) => void;
     onSetCustomStatus: (status: string) => void;
     notify?: (message: string) => void;
 }

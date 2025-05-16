@@ -1,10 +1,14 @@
 import React from "react";
 import { Bell, CalendarDays, PlusCircle, UserPlus } from "lucide-react";
 import GlobalSearch from "@features/global-search/components/GlobalSearch";
-import { DarkModeToggle } from "kaida-ui";
-import SplitButton from "@components/ui/SplitButton";
+import {
+    DarkModeToggle,
+    SplitButton,
+    LanguageSwitcher,
+    Button,
+} from "kaida-ui";
 import * as Tooltip from "@radix-ui/react-tooltip";
-import LanguageSwitcher from "./LanguageSwitcher";
+import i18n from "@app/i18n";
 
 interface Props {
     isDark: boolean;
@@ -32,22 +36,36 @@ const TopControls: React.FC<Props> = ({
             </div>
 
             <div className="flex items-center gap-2 sm:gap-4">
-                <LanguageSwitcher />
+                <LanguageSwitcher
+                    currentLanguage="en"
+                    onChange={(language) => i18n.changeLanguage(language)}
+                    languages={[
+                        { code: "en", label: "English", flag: "🇬🇧" },
+                        { code: "hu", label: "Magyar", flag: "🇭🇺" },
+                        { code: "es", label: "Español", flag: "🇪🇸" },
+                    ]}
+                />
                 <DarkModeToggle isDark={isDark} onToggle={onToggleDark} />
 
                 <Tooltip.Provider>
                     <Tooltip.Root>
                         <Tooltip.Trigger asChild>
-                            <button
-                                aria-label="Notifications"
-                                className="relative p-2 rounded-full hover:bg-muted/10 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent">
-                                <Bell className="w-5 h-5 text-muted dark:text-mutedDark" />
+                            <div className="relative">
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    icon={<Bell className="w-5 h-5" />}
+                                    aria-label="Notifications"
+                                    onClick={() => {
+                                        /*…*/
+                                    }}
+                                />
                                 {notificationsCount > 0 && (
-                                    <span className="absolute -top-1 -right-1 bg-danger text-inverted text-xs w-4 h-4 rounded-full flex items-center justify-center leading-none font-medium">
+                                    <span className="absolute -top-1 -right-1 bg-danger text-inverted text-xs w-4 h-4 rounded-full flex items-center justify-center font-medium">
                                         {notificationsCount}
                                     </span>
                                 )}
-                            </button>
+                            </div>
                         </Tooltip.Trigger>
                         <Tooltip.Content
                             sideOffset={6}

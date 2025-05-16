@@ -1,27 +1,16 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-    darkMode: "class", // Toggle dark mode via a `.dark` class
+    darkMode: "class",
     content: [
         "./src/**/*.{js,ts,jsx,tsx}",
         "./.yalc/kaida-ui/**/*.{js,ts,jsx,tsx}",
     ],
     theme: {
-        // ====== DESIGN TOKENS ======
         extend: {
-            // 1) SPACING SCALE
             spacing: {
-                4: "1rem",
-                6: "1.5rem",
-                8: "2rem",
-                10: "2.5rem",
-                12: "3rem",
-                16: "4rem",
-                // semantic
-                section: "2rem",
-                container: "1.25rem",
+                section: "7rem",
+                content: "1.25rem",
             },
-
-            // 2) BORDER RADII
             borderRadius: {
                 sm: "0.375rem",
                 md: "0.75rem",
@@ -30,14 +19,10 @@ module.exports = {
                 "2xl": "2rem",
                 full: "9999px",
             },
-
-            // 3) FONT FAMILY
             fontFamily: {
                 sans: ["Inter", "system-ui", "sans-serif"],
                 heading: ['"Work Sans"', "sans-serif"],
             },
-
-            // 4) BOX SHADOWS
             boxShadow: {
                 xs: "0 1px 2px rgba(0,0,0,0.05)",
                 sm: "0 2px 4px rgba(0,0,0,0.06)",
@@ -46,8 +31,6 @@ module.exports = {
                 lg: "0 8px 24px rgba(0,0,0,0.15)",
                 inset: "inset 0 1px 2px rgba(0,0,0,0.05)",
             },
-
-            // 5) TYPOGRAPHY
             fontSize: {
                 xs: ["0.75rem", { lineHeight: "1rem" }],
                 sm: ["0.875rem", { lineHeight: "1.25rem" }],
@@ -70,22 +53,34 @@ module.exports = {
                 extrabold: "800",
                 black: "900",
             },
-
-            // 6) COLOR PALETTE (logo-derived)
             colors: {
-                // — BRAND ACCENTS —
+                // neutrals
+                background: {
+                    DEFAULT: "#F8F5F2",
+                    dark: "#0F1A27",
+                    alt: "#E3E7EA",
+                },
+                surface: {
+                    light: "#FFFFFF", //"#F8F5F2",
+                    dark: "#1A2635", //"#0F1A27",
+                    muted: "#E3E7EA",
+                },
+                text: {
+                    DEFAULT: "#0C1B33",
+                    inverted: "#FFFFFF",
+                    muted: "#6B7280",
+                    subtle: "#9CA3AF",
+                },
                 primary: {
-                    DEFAULT: "#CFA15D", // soft gold
+                    DEFAULT: "#CFA15D",
                     light: "#E4C68A",
                     dark: "#B58C4E",
                 },
                 secondary: {
-                    DEFAULT: "#5D8FA6", // muted teal-blue
+                    DEFAULT: "#5D8FA6",
                     light: "#89AEC1",
                     dark: "#497790",
                 },
-
-                // — STATUS COLORS —
                 success: {
                     DEFAULT: "#22C55E",
                     light: "#4ADE80",
@@ -101,50 +96,63 @@ module.exports = {
                     light: "#F87171",
                     dark: "#DC2626",
                 },
-
-                // — SURFACES & BACKGROUNDS —
-                surface: {
-                    light: "#F8F5F2", // paper-white
-                    muted: "#E3E7EA", // cool alt
-                    dark: "#0F1A27", // deep navy
-                },
-                // semantic background aliases
-                background: {
-                    DEFAULT: "#F8F5F2",
-                    alt: "#E3E7EA",
-                    dark: "#0F1A27",
-                },
-
-                // — TEXT & ICONS —
-                text: {
-                    DEFAULT: "#0C1B33", // deep navy
-                    muted: "#6B7280", // gray-500
-                    inverted: "#FFFFFF",
-                },
+                muted: "#F3F4F6",
             },
-
-            // 7) CUSTOM ANIMATIONS
             keyframes: {
                 float: {
                     "0%, 100%": { transform: "translateY(0px)" },
                     "50%": { transform: "translateY(-10px)" },
                 },
+                softPulse: {
+                    "0%, 100%": { boxShadow: "0 0 0 0 rgba(34, 197, 94, 0.4)" },
+                    "50%": { boxShadow: "0 0 0 6px rgba(34, 197, 94, 0)" },
+                },
+                dropdownIn: {
+                    from: { opacity: "0", transform: "translateY(-4px)" },
+                    to: { opacity: "1", transform: "translateY(0)" },
+                },
+                dropdownOut: {
+                    from: { opacity: "1", transform: "translateY(0)" },
+                    to: { opacity: "0", transform: "translateY(-4px)" },
+                },
             },
             animation: {
                 float: "float 6s ease-in-out infinite",
+                softPulse: "softPulse 2.5s ease-in-out infinite",
+                dropdownIn: "dropdownIn 0.2s ease-out forwards",
+                dropdownOut: "dropdownOut 0.15s ease-in forwards",
             },
         },
     },
-
-    // ====== UTILITY PLUGINS ======
     plugins: [
         require("@tailwindcss/forms"),
         require("@tailwindcss/typography"),
         require("tailwind-scrollbar"),
-        // custom component shortcuts:
         function ({ addComponents, theme }) {
             addComponents({
-                // — Panel / Card —
+                ".layout-sidebar": {
+                    backgroundColor: theme("colors.secondary.dark"),
+                    color: theme("colors.text.inverted"),
+                    width: "16rem",
+                    minHeight: "100vh",
+                    padding: theme("spacing.4"),
+                },
+                ".layout-content": {
+                    backgroundColor: theme("colors.background.DEFAULT"),
+                    color: theme("colors.text.DEFAULT"),
+                    flexGrow: "1",
+                    padding: theme("spacing.6"),
+                },
+                ".layout-details": {
+                    backgroundColor: theme("colors.surface.light"),
+                    borderLeft: `1px solid ${theme("colors.background.alt")}`,
+                    width: "20rem",
+                    minHeight: "100vh",
+                    padding: theme("spacing.4"),
+                    ".dark &": {
+                        backgroundColor: theme("colors.surface.dark"),
+                    },
+                },
                 ".card": {
                     backgroundColor: theme("colors.surface.light"),
                     borderRadius: theme("borderRadius.lg"),
@@ -154,7 +162,6 @@ module.exports = {
                         backgroundColor: theme("colors.surface.dark"),
                     },
                 },
-                // — Header wrapper —
                 ".header-container": {
                     backgroundColor: theme("colors.surface.muted"),
                     borderBottom: `1px solid ${theme("colors.surface.light")}`,
@@ -163,7 +170,6 @@ module.exports = {
                         borderColor: theme("colors.surface.dark"),
                     },
                 },
-                // — Buttons —
                 ".btn-primary": {
                     "@apply inline-flex items-center justify-center font-medium rounded-md px-4 py-2":
                         {},
@@ -182,7 +188,6 @@ module.exports = {
                         backgroundColor: theme("colors.secondary.dark"),
                     },
                 },
-                // — Status Badge —
                 ".badge": {
                     "@apply inline-block text-xs font-semibold px-2 py-0.5 rounded-full":
                         {},
@@ -190,6 +195,20 @@ module.exports = {
                     color: theme("colors.text.DEFAULT"),
                 },
             });
+        },
+    ],
+    safelist: [
+        {
+            pattern:
+                /(bg|text|border)-(primary|secondary|success|warning|danger)(-(light|dark))?/,
+            variants: ["dark", "hover"],
+        },
+        {
+            pattern: /(border-l)-(primary|secondary|success|warning|danger)/,
+            variants: ["dark", "hover"],
+        },
+        {
+            pattern: /data-\[highlighted\].*/,
         },
     ],
 };

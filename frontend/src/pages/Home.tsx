@@ -22,7 +22,8 @@ const mainNav = [
 
 const Home: React.FC = () => {
     return (
-        <div className="relative min-h-screen bg-background alt dark:bg-background-dark text-text-default dark:text-text-inverted transition-colors duration-300">
+        <div className="relative min-h-screen bg-surface text-body transition-colors duration-300 overflow-hidden">
+            {/* Header */}
             <div className="header-container shadow-sm">
                 <Header
                     brandName="Harmonia"
@@ -42,9 +43,11 @@ const Home: React.FC = () => {
                             {children}
                         </a>
                     )}
+                    navLinkClass="text-body hover:text-brand transition"
                 />
             </div>
 
+            {/* Main Marketing Sections */}
             <main>
                 <Container disablePadding>
                     <HeroSection />
@@ -54,14 +57,19 @@ const Home: React.FC = () => {
                     <section id="pricing">
                         <PricingSection />
                     </section>
-                    <TestimonialsSection />
+                    <section>
+                        <TestimonialsSection />
+                    </section>
                     <section id="faq">
                         <FAQSection />
                     </section>
-                    <CTASection />
+                    <section>
+                        <CTASection />
+                    </section>
                 </Container>
             </main>
 
+            {/* Footer */}
             <Footer
                 brandName="Harmonia"
                 tagline="Designed for professionals who care about their clients."
@@ -80,7 +88,7 @@ const Home: React.FC = () => {
                     { icon: <FaInstagram size={16} />, href: "#" },
                     { icon: <FaLinkedinIn size={16} />, href: "#" },
                 ]}
-                className="bg-surface-light dark:bg-surface-dark text-text-muted dark:text-text-inverted border-t border-primary/10"
+                className="bg-surface text-subtle border-t border-primary/10"
             />
         </div>
     );

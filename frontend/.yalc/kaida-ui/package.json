@@ -41,7 +41,9 @@
         "react-tooltip": "^5.28.1"
     },
     "dependencies": {
+        "@radix-ui/react-dialog": "^1.1.13",
+        "@radix-ui/react-dropdown-menu": "^2.1.14",
         "react-tooltip": "^5.28.1"
     },
-    "yalcSig": "87399d680ebc73d1cfdd58dfbd0ca3ac"
+    "yalcSig": "f968b01b88db479aed0f8d784cc58430"
 }
